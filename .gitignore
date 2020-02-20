@@ -1,1 +1,8 @@
 *~
+build
+dist
+.run
+binnacle.egg-info
+__pycache__
+*.pyc
+.mypy_cache
