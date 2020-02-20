@@ -8,7 +8,8 @@ from binnacle import commands
 PIPEARG = "--pipe"
 RC_SUCCESS = 0
 TEST_KEYWORDS = [
-    "TEST"
+    "TEST",
+    "EXPECT"
 ]
 
 CommandOutput = Tuple[int, List[str], List[str]]
@@ -53,6 +54,7 @@ def parse_tester_args(args):
     parser.add_argument("--ret", type=int, default=0)
     parser.add_argument("--not", dest="notrc", type=int, default=None)
     parser.add_argument("--seq", type=int, default=0)
+    parser.add_argument("-v", "--value", default=None)
     return parser.parse_known_args(args)
 
 
@@ -95,13 +97,11 @@ def notok(seq: int, node: str, cmd: str,
         sys.exit(1)
 
 
-def handle_TEST(node: str, args: List[str]) -> None:
-    """
-    Runs the tests which starts with TEST.
-    """
-    global_args, remaining_args = parse_tester_args(args)
-    cmdgrps = command_groups(remaining_args)
+def pipeline(node: str, args: List[str]) -> CommandOutput:
+    cmdgrps = command_groups(args)
     out: List[str] = []
+    err: List[str] = []
+    rc: int = 1
     num_groups = len(cmdgrps)
     for idx, cmd in enumerate(cmdgrps):
         rc, out, err = execute(node, cmd[0], cmd[1:], out)
@@ -111,6 +111,15 @@ def handle_TEST(node: str, args: List[str]) -> None:
         # TODO: What to do for non success return code?
         if idx+1 < num_groups and rc != RC_SUCCESS:
             break
+    return rc, out, err
+
+
+def handle_TEST(node: str, args: List[str]) -> None:
+    """
+    Runs the tests which starts with TEST.
+    """
+    global_args, remaining_args = parse_tester_args(args)
+    rc, out, err = pipeline(node, remaining_args)
 
     print_cmd = "TEST " + " ".join(args)
 
@@ -122,3 +131,23 @@ def handle_TEST(node: str, args: List[str]) -> None:
         ok(global_args.seq, node, print_cmd)
 
     notok(global_args.seq, node, print_cmd, err)
+
+
+def handle_EXPECT(node: str, args: List[str]) -> None:
+    """
+    Runs the tests which starts with EXPECT.
+    """
+    global_args, remaining_args = parse_tester_args(args)
+    rc, out, err = pipeline(node, remaining_args)
+
+    print_cmd = "EXPECT " + " ".join(args)
+    if RC_SUCCESS == rc:
+        if "\n".join(out) == global_args.value:
+            ok(global_args.seq, node, print_cmd)
+        else:
+            errmsg = "%s(actual) != %s(expected)" % (
+                "\n".join(out), global_args.value
+            )
+            notok(global_args.seq, node, print_cmd, [errmsg])
+    else:
+        notok(global_args.seq, node, print_cmd, err)

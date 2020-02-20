@@ -6,6 +6,11 @@ function TEST()
 }
 
 
+function EXPECT()
+{
+    NODE=$NODE python3 -m binnacle.tester EXPECT "$@"
+}
+
 function testplan()
 {
     testcnt=`egrep '^[[:space:]]*(EXPECT|EXPECT_NOT|TEST|EXPECT_WITHIN|EXPECT_KEYWORD)[[:space:]]' $0 | wc -l`
