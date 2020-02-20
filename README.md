@@ -36,6 +36,38 @@ cases.
 
 **Note**: This framework is not for Unit testing
 
+## Install
+
+Clone the repository and then install by running,
+
+```
+$ sudo python3 setup.py install
+```
+
+For development, run
+
+```
+$ sudo python3 setup.py develop
+```
+
+Install `prove` using,
+
+```
+$ sudo dnf install perl-Test-Harness
+```
+
+## Usage
+
+```
+binnacle -v <testfile>
+```
+
+For example,
+
+```
+$ binnacle -v sample.t
+```
+
 ## Features
 
 - [Multi node support](#Multi-node-support)
