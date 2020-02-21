@@ -51,7 +51,7 @@ def parse_tester_args(args):
     """Global arguments for each test line"""
     parser = ArgumentParser()
     parser.add_argument("--ret", type=int, default=0)
-    parser.add_argument("--not", type=int, default=None)
+    parser.add_argument("--not", dest="notrc", type=int, default=None)
     parser.add_argument("--seq", type=int, default=0)
     return parser.parse_known_args(args)
 
@@ -74,20 +74,25 @@ def command_groups(args: List[str]) -> List[List[str]]:
     return groups
 
 
-def ok(seq: int, node: str, cmd: str) -> None:
+def ok(seq: int, node: str, cmd: str, do_exit: bool=True) -> None:
     """
     "ok" output as required in TAP(Test Anything Protocol)
     """
     print("%-6s %4d - [{node=%s}, {cmd=%s}]" % ("ok", seq, node, cmd))
+    if do_exit:
+        sys.exit(0)
 
 
-def notok(seq: int, node: str, cmd: str, errlines: List[str]=[]) -> None:
+def notok(seq: int, node: str, cmd: str,
+          errlines: List[str]=[], do_exit:bool=True) -> None:
     """
     "not ok" output as required in TAP(Test Anything Protocol)
     """
     print("%-6s %4d - [{node=%s}, {cmd=%s}]" % ("not ok", seq, node, cmd))
     for line in errlines:
         print("#    " + line)
+    if do_exit:
+        sys.exit(1)
 
 
 def handle_TEST(node: str, args: List[str]) -> None:
@@ -108,7 +113,12 @@ def handle_TEST(node: str, args: List[str]) -> None:
             break
 
     print_cmd = "TEST " + " ".join(args)
-    if global_args.ret == rc:
+
+    # If `--not=<ret>` is specified
+    if global_args.notrc is not None:
+        if global_args.notrc != rc:
+            ok(global_args.seq, node, print_cmd)
+    elif global_args.ret == rc:
         ok(global_args.seq, node, print_cmd)
-    else:
-        notok(global_args.seq, node, print_cmd, err)
+
+    notok(global_args.seq, node, print_cmd, err)
