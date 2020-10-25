@@ -1,14 +1,15 @@
 NODE=local
+PORT=22
 
 function TEST()
 {
-    NODE=$NODE python3 -m binnacle.tester TEST "$@"
+    PORT=$PORT NODE=$NODE python3 -m binnacle.tester TEST "$@"
 }
 
 
 function EXPECT()
 {
-    NODE=$NODE python3 -m binnacle.tester EXPECT "$@"
+    PORT=$PORT NODE=$NODE python3 -m binnacle.tester EXPECT "$@"
 }
 
 function testplan()

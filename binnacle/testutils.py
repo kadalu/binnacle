@@ -2,6 +2,9 @@ import subprocess
 from argparse import ArgumentParser
 from typing import List, Tuple
 import sys
+import os
+import paramiko
+import shlex
 
 from binnacle import commands
 
@@ -13,6 +16,31 @@ TEST_KEYWORDS = [
 ]
 
 CommandOutput = Tuple[int, List[str], List[str]]
+
+
+def execute_ssh(node: str, cmd: str, args: List[str],
+                stdin_lines:List[str]) -> CommandOutput:
+    port = os.environ.get("PORT", 22)
+    client = paramiko.client.SSHClient()
+    client.load_system_host_keys()
+    client.connect(node, port=port)
+    cmd = cmd + " " + shlex.join(args)
+    stdin, stdout, stderr = client.exec_command(cmd)
+
+    if stdin_lines:
+        for line in stdin_lines:
+            stdin.write(line + "\n")
+
+        stdin.flush()
+        stdin.close()
+
+    # This is blocking, completes after command finishes
+    ret = stdout.channel.recv_exit_status()
+    out = stdout.read().decode("utf-8").strip().split("\n")
+    err = stderr.read().decode("utf-8").strip().split("\n")
+    client.close()
+
+    return (ret, out, err)
 
 
 def execute(node: str, cmd: str, args: List[str],
@@ -28,8 +56,11 @@ def execute(node: str, cmd: str, args: List[str],
         # TODO: Handle node != "local" and execute via ssh
         # depending on the command. Not required if command is only
         # post processing first command's output
+        if node != "local":
+            return execute_ssh(node, cmd, args, stdin_lines)
+
         cmdargs = [cmd] + args
-        
+
         proc = subprocess.Popen(
             cmdargs,
             stderr=subprocess.PIPE,
