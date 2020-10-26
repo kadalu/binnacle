@@ -25,23 +25,27 @@ def get_args():
 
 
 def main():
-    args = get_args()
-    testsdir = os.path.dirname(args.testfile)
     try:
-        os.makedirs(os.path.join(testsdir, ".run"))
-    except FileExistsError:
-        pass
+        args = get_args()
+        testsdir = os.path.dirname(args.testfile)
+        try:
+            os.makedirs(os.path.join(testsdir, ".run"))
+        except FileExistsError:
+            pass
 
-    newpath = os.path.join(testsdir, ".run", os.path.basename(args.testfile))
-    testparser.parse_write(
-        args.testfile,
-        newpath
-    )
-    cmd = [args.prove_command]
-    if args.verbose:
-        cmd.append("-v")
-    cmd.append(newpath)
-    os.system(" ".join(cmd))
+        newpath = os.path.join(testsdir, ".run", os.path.basename(
+            args.testfile))
+        testparser.parse_write(
+            args.testfile,
+            newpath
+        )
+        cmd = [args.prove_command]
+        if args.verbose:
+            cmd.append("-v")
+        cmd.append(newpath)
+        os.system(" ".join(cmd))
+    except KeyboardInterrupt:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
