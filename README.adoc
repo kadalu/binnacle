@@ -39,7 +39,29 @@ cases.
 
 == Install
 
-TODO: wget command
+Download the latest release with the command
+
+----
+curl -L https://github.com/kadalu/binnacle/releases/download/0.1.0/binnacle -o binnacle
+----
+
+Make the `binnacle` file executable.
+
+----
+chmod +x ./binnacle
+----
+
+Move the binary in to your PATH.
+
+----
+sudo mv ./binnacle /usr/local/bin/binnacle
+----
+
+Test to ensure the version you installed is up-to-date
+
+----
+$ binnacle --version
+----
 
 == Usage
 
