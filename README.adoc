@@ -16,7 +16,7 @@ below.
 ----
 # File: hello.t
 TEST "touch /var/www/html/index.html"
----
+----
 
 That's it! Run the test file using the binnacle command, and it gives
 the beautiful Output as below.
