@@ -130,6 +130,11 @@ module Binnacle
         puts opts
         exit
       end
+
+      opts.on("--version", "Show Version information") do
+        puts "Binnacle #{VERSION}"
+        exit
+      end
     end
 
     opt_parser.parse!(ARGV)
