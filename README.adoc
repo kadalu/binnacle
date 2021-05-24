@@ -1,4 +1,4 @@
-# Test Framework - Binnacle
+= Test Framework - Binnacle
 
 Proposal for a Test framework with the focus for Tester's delight!
 
@@ -12,21 +12,22 @@ the prefix `TEST`. For example, the command `touch
 to see if it succeeds. To convert this into a test case, write as
 below.
 
-```
+[source,ruby]
+----
 # File: hello.t
-TEST touch /var/www/html/index.html
-```
+TEST "touch /var/www/html/index.html"
+---
 
 That's it! Run the test file using the binnacle command, and it gives
 the beautiful Output as below.
 
-```console
+[source,console]
+----
 $ binnacle hello.t
-hello.t .. ok
-All tests successful.
-Files=1, Tests=1,  0 wallclock secs ( 0.03 usr  0.01 sys +  0.07 cusr  0.05 csys =  0.16 CPU)
+TOTAL: 1  PASSED: 1  FAILED: 0  SKIPPED: 0  TODOs: 0
 Result: PASS
-```
+DURATION: 0.124071 seconds
+----
 
 The verbose(`-v`) Output gives other useful details about executed
 command and error lines in case of errors.
@@ -36,58 +37,23 @@ cases.
 
 **Note**: This framework is not for Unit testing
 
-## Install
+== Install
 
-Clone the repository and then install by running,
+TODO: wget command
 
-```
-$ sudo python3 setup.py install
-```
+== Usage
 
-For development, run
-
-```
-$ sudo python3 setup.py develop
-```
-
-Install `prove` using,
-
-```
-$ sudo dnf install perl-Test-Harness
-```
-
-## Usage
-
-```
+----
 binnacle -v <testfile>
-```
+----
 
 For example,
 
-```
+[source,console]
+----
 $ binnacle -v sample.t
-```
+----
 
-## Features
+== Features
 
-- [Multi node support](#Multi-node-support)
-
-[and more](https://kadalu.io/rfcs/0002-test-framework-binnacle.html)
-
-### Multi-node support
-
-Just specify `NODE=<nodename>` before any test to run in that
-node. For example,
-
-```
-NODE=node1.example.com
-TEST command1
-TEST command2
-
-NODE=node2.example.com
-TEST command3
-```
-
-**Note**: Passwordless SSH access is required from the current node
-for all the nodes which are specified in Tests.
-
+TODO
