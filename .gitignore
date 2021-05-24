@@ -6,3 +6,4 @@ binnacle.egg-info
 __pycache__
 *.pyc
 .mypy_cache
+bin
