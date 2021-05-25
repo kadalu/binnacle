@@ -1,5 +1,5 @@
 TEST "hello"
-TEST "echo \"Hello\nWorld\" | grep \"H\""
+TEST "echo \"Hello\nWorld\""
 TEST "ls /tmp/abcd"
 TEST 1, "ls /tmp/abcd"
 EXPECT "Hello World", "echo \"Hello World\""
@@ -8,3 +8,5 @@ FALSE 2 == 3, "2 == 3"
 value = 40
 TRUE "#{value} == 42", "value == 42", "Actual = #{value}"
 FALSE "#{value} != 42", "value != 42", "Actual = #{value}"
+words = TEST "echo -n Hello"
+TRUE words.size == 5, "Hello string is 5 letters", "Actual: #{words.size}"
