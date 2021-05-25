@@ -69,7 +69,7 @@ module BinnacleTestPlugins
   def TEST(*args)
     BinnacleTestsRunner.inc_counter
 
-    return if BinnacleTestsRunner.dry_run?
+    return "" if BinnacleTestsRunner.dry_run?
 
     expect_ret = 0
     cmd = args[0]
@@ -80,6 +80,8 @@ module BinnacleTestPlugins
 
     ret, out, err = BinnacleTestsRunner.execute(cmd)
     BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, out, err, expect_ret)
+
+    out
   end
 
   # Test the output of any command matches the given value

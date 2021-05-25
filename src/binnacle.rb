@@ -182,6 +182,7 @@ if options.runner
   rescue LoadError
     # Return -1 so that dry run will validate this
     puts -1
+    exit
   end
 
   puts BinnacleTestsRunner.tests_count if BinnacleTestsRunner.dry_run?
