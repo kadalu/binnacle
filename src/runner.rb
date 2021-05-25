@@ -74,24 +74,27 @@ module BinnacleTestsRunner
     printf("%-6s %3d - %s\n", ok_msg, test_id, msg)
   end
 
-  def self.OK_NOT_OK(cmd, ok, diagnostic=nil)
-    out_desc = "node=#{@@node} cmd=\"#{cmd}\""
-    puts "# #{diagnostic.split("\n").join("\n# ")}" if !diagnostic.nil?
+  def self.OK_NOT_OK(test_name, cmd, ok, diagnostic=nil)
+    out_desc = "node=#{@@node} cmd=\"#{test_name} #{cmd}\""
+
+    if !diagnostic.nil? && diagnostic != ""
+      puts "# #{diagnostic.split("\n").join("\n# ")}"
+    end
 
     ok_msg = ok ? "ok" : "not ok"
     self.print_test_state(ok_msg, self.tests_count, out_desc)
   end
 
   def self.OK(cmd, diagnostic=nil)
-    OK_NOT_OK(cmd, true, diagnostic)
+    OK_NOT_OK(caller_locations(1,1)[0].label, cmd, true, diagnostic)
   end
 
   def self.NOT_OK(cmd, diagnostic=nil)
-    OK_NOT_OK(cmd, false, diagnostic)
+    OK_NOT_OK(caller_locations(1,1)[0].label, cmd, false, diagnostic)
   end
 
   def self.CMD_OK_NOT_OK(cmd, ret, out, err, expect_ret = 0)
-    out_desc = "node=#{@@node} cmd=\"#{cmd}\""
+    out_desc = "node=#{@@node} cmd=\"#{caller_locations(1,1)[0].label} #{cmd}\""
     out_desc += " expect_ret=#{expect_ret}" if expect_ret != 0
 
     if ret == expect_ret

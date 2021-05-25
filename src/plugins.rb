@@ -107,4 +107,67 @@ module BinnacleTestPlugins
       end
     end
   end
+
+  # If value is String then evaluate it else return as is
+  def value_from_expr(value, title, fail_message)
+    if value.is_a? String
+      begin
+        value = eval(value)
+      rescue Exception => ex
+        fail_message += "\n#{ex.message}"
+        BinnacleTestsRunner.NOT_OK(title, fail_message)
+        return nil
+      end
+    end
+
+    value
+  end
+
+  # Validate if the given expression or value as true
+  #
+  # ```
+  # TRUE 10 == 10, "Test Title", "Optional Fail message"
+  # ```
+  #
+  # ```
+  # TRUE "#{value} == 100", "Value is 100", "Actual: #{value}"
+  # ```
+  def TRUE(value, title, fail_message = "")
+    BinnacleTestsRunner.inc_counter
+
+    return if BinnacleTestsRunner.dry_run?
+
+    value = value_from_expr(value, title, fail_message)
+    return if value.nil?
+
+    if value
+      BinnacleTestsRunner.OK(title)
+    else
+      BinnacleTestsRunner.NOT_OK(title, fail_message)
+    end
+  end
+
+  # Validate if the given expression or value as false
+  #
+  # ```
+  # FALSE 10 == 10, "Test Title", "Optional Fail message"
+  # ```
+  #
+  # ```
+  # FALSE "#{value} == 100", "Value is not 100", "Actual: #{value}"
+  # ```
+  def FALSE(value, title, fail_message = "")
+    BinnacleTestsRunner.inc_counter
+
+    return if BinnacleTestsRunner.dry_run?
+
+    value = value_from_expr(value, title, fail_message)
+    return if value.nil?
+
+    if !value
+      BinnacleTestsRunner.OK(title)
+    else
+      BinnacleTestsRunner.NOT_OK(title, fail_message)
+    end
+  end
 end

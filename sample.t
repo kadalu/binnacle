@@ -3,3 +3,8 @@ TEST "echo \"Hello\nWorld\" | grep \"H\""
 TEST "ls /tmp/abcd"
 TEST 1, "ls /tmp/abcd"
 EXPECT "Hello World", "echo \"Hello World\""
+TRUE 2 == 2, "2 == 2"
+FALSE 2 == 3, "2 == 3"
+value = 40
+TRUE "#{value} == 42", "value == 42", "Actual = #{value}"
+FALSE "#{value} != 42", "value != 42", "Actual = #{value}"

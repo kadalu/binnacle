@@ -9,6 +9,16 @@ begin
 rescue LoadError
 end
 
+EXIT_RESULT_PASS = 0
+EXIT_RESULT_FAIL = 1
+EXIT_INVALID_ARGS = 2
+EXIT_TESTS_COUNT_MISMATCH = 3
+EXIT_DRY_RUN_FAILED = 4
+EXIT_TEST_FILE_NOT_FOUND = 5
+EXIT_NO_TESTS = 6
+EXIT_FAILED_TO_EXECUTE = 7
+
+
 module Binnacle
   # Parse Test Anything Protocol output format
   class TapParser
@@ -52,10 +62,20 @@ module Binnacle
       STDERR.puts "Failed to execute #{opts.test_file}"
       STDERR.puts err
       STDERR.puts "Result: FAIL"
-      exit 1
+      exit EXIT_DRY_RUN_FAILED
     end
 
     total_tests = out.strip.to_i
+
+    if total_tests == -1
+      STDERR.puts "Failed to find the Test file #{opts.test_file}"
+      exit EXIT_TEST_FILE_NOT_FOUND
+    end
+
+    if total_tests == 0
+      puts "No tests available"
+      exit EXIT_NO_TESTS
+    end
 
     # First line TAP output
     puts "1..#{total_tests}" if opts.verbose
@@ -80,23 +100,26 @@ module Binnacle
           STDERR.puts "Number of tests output not matching the Test plan.  " \
                       "available_tests=#{total_tests} executed=#{parser.total}"
           STDERR.puts "Result: FAIL"
-          exit 1
+          exit EXIT_TESTS_COUNT_MISMATCH
         end
         # Print the summary
         puts "TOTAL: #{parser.total}  PASSED: #{parser.passed}  " \
              "FAILED: #{parser.failed}  SKIPPED: #{parser.skipped}  " \
              "TODOs: #{parser.todos}"
 
+        exit_code = EXIT_RESULT_PASS
         if parser.total == parser.passed
           puts "Result: PASS"
         else
           puts "Result: FAIL"
+          exit_code = EXIT_RESULT_FAIL
         end
+        exit exit_code
       else
         puts "Failed to execute #{opts.test_file}"
         puts err
         STDERR.puts "Result: FAIL"
-        exit 1
+        exit EXIT_FAILED_TO_EXECUTE
       end
       end_time = Time.now
 
@@ -141,7 +164,7 @@ module Binnacle
 
     if ARGV.size < 1
       STDERR.puts "Test file is not specified"
-      exit 1
+      exit EXIT_INVALID_ARGS
     end
 
     args.test_file = ARGV[0]
@@ -154,7 +177,12 @@ if options.runner
   include BinnacleTestPlugins
   BinnacleTestsRunner.dry_run = options.dry_run
 
-  load File.expand_path(options.test_file)
+  begin
+    load File.expand_path(options.test_file)
+  rescue LoadError
+    # Return -1 so that dry run will validate this
+    puts -1
+  end
 
   puts BinnacleTestsRunner.tests_count if BinnacleTestsRunner.dry_run?
 else
