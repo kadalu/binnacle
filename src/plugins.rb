@@ -97,7 +97,7 @@ module BinnacleTestPlugins
     ret, out, err = BinnacleTestsRunner.execute(cmd)
 
     if ret != 0
-      BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, out, err, expect_ret)
+      BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, out, err, 0)
     else
       if "#{expect_value}" == out.strip
         BinnacleTestsRunner.OK(cmd)
