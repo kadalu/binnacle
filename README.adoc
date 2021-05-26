@@ -2,4 +2,4 @@
 
 A Test framework with the focus for Tester's delight!
 
-Start with our link:docs/quick-start.adoc[Quick Start Guide]. More documentation is at [`docs/` folder](docs/).
+Start with our link:docs/quick-start.adoc[Quick Start Guide]. More documentation is at link:docs/[`docs/` folder].
