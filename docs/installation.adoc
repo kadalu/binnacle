@@ -1,0 +1,29 @@
+= Installation
+
+Download and install using the following commands. Ruby should be installed on the machine where it needs to work.
+
+[source,console]
+----
+$ curl -L https://github.com/kadalu/binnacle/releases/download/0.2.0/binnacle -o binnacle
+----
+
+Make the binnacle file executable.
+
+[source,console]
+----
+$ chmod +x ./binnacle
+----
+
+Move the binary in to your PATH.
+
+[source,console]
+----
+$ sudo mv ./binnacle /usr/local/bin/binnacle
+----
+
+Test to ensure the version you installed is up-to-date
+
+[source,console]
+----
+$ binnacle --version
+----

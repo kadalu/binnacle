@@ -1,0 +1,62 @@
+= Quick Start
+
+Binnacle is a simple Test framework with the focus on Tester's delight.
+
+Download and install using the following commands. Ruby should be installed on the machine where it needs to work.
+
+[source,console]
+----
+$ curl -L https://github.com/kadalu/binnacle/releases/download/0.2.0/binnacle -o binnacle
+----
+
+Make the binnacle file executable.
+
+[source,console]
+----
+$ chmod +x ./binnacle
+----
+
+Move the binary in to your PATH.
+
+[source,console]
+----
+$ sudo mv ./binnacle /usr/local/bin/binnacle
+----
+
+Test to ensure the version you installed is up-to-date
+
+[source,console]
+----
+$ binnacle --version
+----
+
+Lets write a quick test file that tests a file exists or not
+
+[source,ruby]
+----
+# file: hello.t
+TEST "stat /var/www/html/index.html"
+----
+
+Now run this test file by running,
+
+[source,console]
+----
+$ binnacle hello.t -v
+1..1
+# stat: /var/www/html/index.html: stat: No such file or directory
+not ok   1 - node=local cmd="TEST stat /var/www/html/index.html"
+TOTAL: 1  PASSED: 0  FAILED: 1  SKIPPED: 0  TODOs: 0
+Result: FAIL
+----
+
+If that file exists then it will print the output as below
+
+[source,console]
+----
+$ binnacle hello.t -v
+1..1
+ok       1 - node=local cmd="TEST stat /var/www/html/index.html"
+TOTAL: 1  PASSED: 1  FAILED: 0  SKIPPED: 0  TODOs: 0
+Result: PASS
+----
