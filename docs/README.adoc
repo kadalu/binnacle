@@ -1,0 +1,10 @@
+= Binnacle
+
+== Tester Guide
+
+* link:quick-start[Quick Start]
+* link:introduction[Introduction]
+* link:installation[Installation]
+* link:syntax[Syntax]
+* link:keywords[Keywords]
+* link:plugins[Plugins]

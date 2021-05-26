@@ -1,0 +1,117 @@
+= Keywords
+
+== TEST
+
+
+Runs any given command and validates for the exit code. For example,
+
+[source,ruby]
+----
+TEST "stat /var/www/html/index.html"
+----
+
+Or validate for a specific exit code
+
+[source,ruby]
+----
+TEST 1, "ls /non/existing/dir"
+----
+
+== EXPECT
+
+Runs the given command and validates the output only if exit code of the command is zero.
+
+[source,ruby]
+----
+EXPECT "node1.example.com", "hostname"
+----
+
+== TEST_WITHIN
+
+To be implemented
+
+== EXPECT_WITHIN
+
+To be implemented
+
+== EXISTS
+
+To be implemented
+
+== TRUE
+
+Test any expression
+
+[source,ruby]
+----
+TRUE <expr>, "test title", "message to show on failure"
+----
+
+[source,ruby]
+----
+TRUE 42 % 2 == 0, "Even number test for 42"
+
+hn = TEST "hostname"
+TRUE hn == "node1.example.com", "hostname test for node1.example.com", "Actual: #{hn}"
+----
+
+== FALSE
+
+Same as `TRUE` but validate for `false`
+
+== NODE
+
+To switch node to execute the tests.
+
+[source,ruby]
+----
+# Approach 1: set required node before the test statements
+
+NODE "node1.example.com"
+TEST "command1.."
+TEST "command2.."
+
+NODE "node2.example.com"
+TEST "command1.."
+TEST "command2.."
+----
+
+[source,ruby]
+----
+# Approach 2: Use Block syntax when node switch is required
+
+# Default node set
+NODE "node1.example.com"
+
+TEST "command 1"
+TEST "command 2"
+
+NODE "node2.example.com" do
+  TEST "command 3"
+  TEST "command 4"
+end
+
+# continue running commands in default node
+TEST "command 5"
+----
+
+== REMOTE_PLUGIN
+
+Default remote plugin is `ssh`, change it when required. Similar to `NODE` keyword, this also supports Block syntax.
+
+[source,ruby]
+----
+NODE "node1.example.com"
+REMOTE_PLUGIN "ssh"
+
+TEST "command 1"
+
+REMOTE_PLUGIN "docker" do
+  NODE "node2.example.com" do
+    TEST "command 2"
+  end
+end
+
+# Continue with default plugin
+TEST "command 3"
+----

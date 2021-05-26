@@ -1,0 +1,8 @@
+- section: Tester Guide
+  chapters:
+    - title: Quick Start
+    - title: Introduction
+    - title: Installation
+    - title: Syntax
+    - title: Keywords
+    - title: Plugins
