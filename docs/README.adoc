@@ -2,9 +2,9 @@
 
 == Tester Guide
 
-* link:quick-start[Quick Start]
-* link:introduction[Introduction]
-* link:installation[Installation]
-* link:syntax[Syntax]
-* link:keywords[Keywords]
-* link:plugins[Plugins]
+* link:quick-start.adoc[Quick Start]
+* link:introduction.adoc[Introduction]
+* link:installation.adoc[Installation]
+* link:syntax.adoc[Syntax]
+* link:keywords.adoc[Keywords]
+* link:plugins.adoc[Plugins]
