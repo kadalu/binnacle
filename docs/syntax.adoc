@@ -63,7 +63,7 @@ Some keywords allows to limit the execution only within a block. Block starts wi
 # Executes in Local node
 TEST "echo Hello"
 
-NODE "node1.example.com" do
+USE_NODE "node1.example.com" do
   TEST "echo Hello"
 end
 
@@ -81,7 +81,7 @@ nodes = ["node1.example.com", "node2.example.com", "node3.example.com"]
 
 nodes.each do |node|
   # Set node
-  NODE node
+  USE_NODE node
 
   # Validate the hostname set properly
   EXPECT node, "hostname"
