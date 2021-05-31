@@ -1,4 +1,4 @@
-NODE mynode
+USE_NODE mynode
 PORT 2233
 
 TEST "hello"

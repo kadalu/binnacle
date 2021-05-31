@@ -3,7 +3,7 @@ module BinnacleTestPlugins
   # Using as Block
   #
   # ```
-  # NODE "node1.example.com" do
+  # USE_NODE "node1.example.com" do
   #   TEST "stat /var/www/html/index.html"
   # end
   # ```
@@ -11,27 +11,27 @@ module BinnacleTestPlugins
   # or without block
   #
   # ```
-  # NODE "node1.example.com"
+  # USE_NODE "node1.example.com"
   # TEST "stat /var/www/html/index.html"
   # ```
-  def NODE(node)
+  def USE_NODE(node)
     if !block_given?
-      BinnacleTestsRunner.set_node node
+      BinnacleTestsRunner.node = node
       return
     end
 
     prev = BinnacleTestsRunner.node
-    BinnacleTestsRunner.set_node node
+    BinnacleTestsRunner.node = node
     yield
   ensure
-    BinnacleTestsRunner.set_node = prev if !prev.nil?
+    BinnacleTestsRunner.node = prev if !prev.nil?
   end
 
   # Two ways to set the remote plugin
   # Using as Block
   #
   # ```
-  # REMOTE_PLUGIN "docker" do
+  # USE_REMOTE_PLUGIN "docker" do
   #   TEST "stat /var/www/html/index.html"
   # end
   # ```
@@ -39,20 +39,20 @@ module BinnacleTestPlugins
   # or without block
   #
   # ```
-  # REMOTE_PLUGIN "docker"
+  # USE_REMOTE_PLUGIN "docker"
   # TEST "stat /var/www/html/index.html"
   # ```
-  def REMOTE_PLUGIN(plugin)
+  def USE_REMOTE_PLUGIN(plugin)
     if !block_given?
-      BinnacleTestsRunner.set_remote_plugin plugin
+      BinnacleTestsRunner.remote_plugin = plugin
       return
     end
 
     prev = BinnacleTestsRunner.remote_plugin
-    BinnacleTestsRunner.set_remote_plugin plugin
+    BinnacleTestsRunner.remote_plugin = plugin
     yield
   ensure
-    BinnacleTestsRunner.set_remote_plugin prev if !prev.nil?
+    BinnacleTestsRunner.remote_plugin = prev if !prev.nil?
   end
 
   # Test any command for its return code

@@ -68,6 +68,14 @@ if __name__ == "__main__":
       pass
 ----
 
+Use the above script as,
+
+[source,ruby]
+----
+TEST "python3 myscript.py test1 args.."
+TEST "python3 myscript.py test2 args.."
+----
+
 == Keywords Plugins
 
 As of now, only Ruby programming is supported for adding new keyword to Binnacle. Documentation to add new keywords is coming soon.

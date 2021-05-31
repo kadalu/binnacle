@@ -40,13 +40,13 @@ Easily run all the tests from your laptop that runs tests via `ssh` or `docker e
 
 [source,ruby]
 ----
-NODE "node1.example.com"
+USE_NODE "node1.example.com"
 EXPECT "node1.example.com", "hostname"
 
-NODE "node2.example.com"
+USE_NODE "node2.example.com"
 EXPECT "node2.example.com", "hostname"
 
-NODE "node3.example.com"
+USE_NODE "node3.example.com"
 EXPECT "node3.example.com", "hostname"
 ----
 
@@ -54,15 +54,15 @@ Default remote plugin is `ssh`. To use docker plugin,
 
 [source,ruby]
 ----
-REMOTE_PLUGIN "docker"
+USE_REMOTE_PLUGIN "docker"
 
-NODE "node1.example.com"
+USE_NODE "node1.example.com"
 EXPECT "node1.example.com", "hostname"
 
-NODE "node2.example.com"
+USE_NODE "node2.example.com"
 EXPECT "node2.example.com", "hostname"
 
-NODE "node3.example.com"
+USE_NODE "node3.example.com"
 EXPECT "node3.example.com", "hostname"
 ----
 
@@ -71,12 +71,12 @@ What if we need to set default node to execute all the commands but only a few c
 [source,ruby]
 ----
 # Default node setup
-NODE "node1.example.com"
+USE_NODE "node1.example.com"
 
 TEST "stat /var/www/html/index.html"
 EXPECT "node1.example.com", "hostname"
 
-NODE "node2.example.com" do
+USE_NODE "node2.example.com" do
   EXPECT "node2.example.com", "hostname"
 end
 ----
@@ -91,8 +91,8 @@ For example,
 
 [source,ruby]
 ----
-REMOTE_PLUGIN "ssh"
-NODE "node1.example.com"
+USE_REMOTE_PLUGIN "ssh"
+USE_NODE "node1.example.com"
 TEST "command1 arg1 arg2"
 ----
 
@@ -100,13 +100,13 @@ Above command will be executed as below when ssh plugin is used.
 
 [source,bash]
 ----
-ssh node1.example.com /bin/bash -c 'command1 arg1 arg2'
+ssh node1.example.com 'command1 arg1 arg2'
 ----
 
 [source,ruby]
 ----
-REMOTE_PLUGIN "docker"
-NODE "node1.example.com"
+USE_REMOTE_PLUGIN "docker"
+USE_NODE "node1.example.com"
 TEST "command1 arg1 arg2"
 ----
 
