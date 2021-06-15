@@ -77,12 +77,12 @@ module BinnacleTestsRunner
   def self.OK_NOT_OK(test_name, cmd, ok, diagnostic=nil)
     out_desc = "node=#{@@node} cmd=\"#{test_name} #{cmd}\""
 
+    ok_msg = ok ? "ok" : "not ok"
+    self.print_test_state(ok_msg, self.tests_count, out_desc)
+
     if !diagnostic.nil? && diagnostic != ""
       puts "# #{diagnostic.split("\n").join("\n# ")}"
     end
-
-    ok_msg = ok ? "ok" : "not ok"
-    self.print_test_state(ok_msg, self.tests_count, out_desc)
   end
 
   def self.OK(cmd, diagnostic=nil)
@@ -100,8 +100,8 @@ module BinnacleTestsRunner
     if ret == expect_ret
       self.print_test_state("ok", self.tests_count, out_desc)
     else
-      puts "# #{err.split("\n").join("\n# ")}"
       self.print_test_state("not ok", self.tests_count, out_desc)
+      puts "# #{err.split("\n").join("\n# ")}"
     end
   end
 end

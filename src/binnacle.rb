@@ -92,10 +92,17 @@ module Binnacle
       outlines = []
       stdout_and_stderr.each do |line|
         # Print output/error only in verbose mode
-        puts line if opts.verbose
+        if opts.verbose
+          if !line.start_with?("#") && !line.start_with?("ok") && !line.start_with?("not ok")
+            puts "# #{line}"
+          else
+            puts line
+          end
+        end
         outlines << line
       end
       status = wait_thr.value
+      duration = Time.now - start_time
 
       if status.success?
         parser = TapParser.new(outlines)
@@ -108,9 +115,10 @@ module Binnacle
           exit EXIT_TESTS_COUNT_MISMATCH
         end
         # Print the summary
+        puts
         puts "TOTAL: #{parser.total}  PASSED: #{parser.passed}  " \
              "FAILED: #{parser.failed}  SKIPPED: #{parser.skipped}  " \
-             "TODOs: #{parser.todos}"
+             "TODOs: #{parser.todos}  DURATION: #{duration} seconds"
 
         exit_code = EXIT_RESULT_PASS
         if parser.total == parser.passed
@@ -122,13 +130,11 @@ module Binnacle
         exit exit_code
       else
         puts "Failed to execute #{opts.test_file}"
+        puts "DURATION: #{duration} seconds"
         puts err
         STDERR.puts "Result: FAIL"
         exit EXIT_FAILED_TO_EXECUTE
       end
-      end_time = Time.now
-
-      puts "DURATION: #{end_time - start_time} seconds"
     end
   end
 
