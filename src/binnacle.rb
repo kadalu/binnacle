@@ -65,7 +65,12 @@ module Binnacle
       exit EXIT_DRY_RUN_FAILED
     end
 
-    total_tests = out.strip.to_i
+    total_tests = 0
+    out.strip.split("\n").each do |line|
+      if line.start_with?(":::")
+        total_tests = line.split(":::")[-1].to_i
+      end
+    end
 
     if total_tests == -1
       STDERR.puts "Failed to find the Test file #{opts.test_file}"
@@ -185,7 +190,7 @@ if options.runner
     exit
   end
 
-  puts BinnacleTestsRunner.tests_count if BinnacleTestsRunner.dry_run?
+  puts ":::#{BinnacleTestsRunner.tests_count}" if BinnacleTestsRunner.dry_run?
 else
   Binnacle.run(options)
 end
