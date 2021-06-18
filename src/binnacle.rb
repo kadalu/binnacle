@@ -6,6 +6,7 @@ require 'optparse'
 begin
   require "./runner"
   require "./plugins"
+  require "./metrics"
 rescue LoadError
 end
 
@@ -54,16 +55,12 @@ module Binnacle
     end
   end
 
-  def self.run(opts)
+  def self.tests_count(test_file)
     # Dry run and get the count of tests in the given file
     out, err, status = Open3.capture3(
-                "ruby #{__FILE__} #{opts.test_file} --runner --dry-run")
-    if !status.success?
-      STDERR.puts "Failed to execute #{opts.test_file}"
-      STDERR.puts err
-      STDERR.puts "Result: FAIL"
-      exit EXIT_DRY_RUN_FAILED
-    end
+                "ruby #{__FILE__} #{test_file} --runner --dry-run")
+
+    return -2 if !status.success?
 
     total_tests = 0
     out.strip.split("\n").each do |line|
@@ -72,22 +69,22 @@ module Binnacle
       end
     end
 
-    if total_tests == -1
-      STDERR.puts "Failed to find the Test file #{opts.test_file}"
-      exit EXIT_TEST_FILE_NOT_FOUND
-    end
+    total_tests
+  end
 
-    if total_tests == 0
-      puts "No tests available"
-      exit EXIT_NO_TESTS
-    end
-
+  def self.run(test_file, total_tests, opts)
     # First line TAP output
-    puts "1..#{total_tests}" if opts.verbose
+    if opts.verbose
+      puts
+      puts
+      STDERR.puts "------- STARTED(tests=#{total_tests}, file=\"#{test_file}\")"
+    end
 
-    cmd = "ruby #{__FILE__} #{opts.test_file} --runner"
-    start_time = Time.now
+    return 0 if total_tests <= 0
 
+    cmd = "ruby #{__FILE__} #{test_file} --runner"
+
+    passed = 0
     Open3.popen2e(cmd) do |stdin, stdout_and_stderr, wait_thr|
       outlines = []
       stdout_and_stderr.each do |line|
@@ -102,40 +99,153 @@ module Binnacle
         outlines << line
       end
       status = wait_thr.value
-      duration = Time.now - start_time
 
       if status.success?
         parser = TapParser.new(outlines)
-        # If test file exited early on error. Not all the required
-        # tests are executed
-        if parser.total != total_tests
-          STDERR.puts "Number of tests output not matching the Test plan.  " \
-                      "available_tests=#{total_tests} executed=#{parser.total}"
-          STDERR.puts "Result: FAIL"
-          exit EXIT_TESTS_COUNT_MISMATCH
-        end
-        # Print the summary
-        puts
-        puts "TOTAL: #{parser.total}  PASSED: #{parser.passed}  " \
-             "FAILED: #{parser.failed}  SKIPPED: #{parser.skipped}  " \
-             "TODOs: #{parser.todos}  DURATION: #{duration} seconds"
-
-        exit_code = EXIT_RESULT_PASS
-        if parser.total == parser.passed
-          puts "Result: PASS"
-        else
-          puts "Result: FAIL"
-          exit_code = EXIT_RESULT_FAIL
-        end
-        exit exit_code
+        passed = parser.passed
       else
-        puts "Failed to execute #{opts.test_file}"
-        puts "DURATION: #{duration} seconds"
-        puts err
-        STDERR.puts "Result: FAIL"
-        exit EXIT_FAILED_TO_EXECUTE
+        STDERR.puts "# Failed to execute" if opts.verbose
       end
     end
+
+    passed
+  end
+
+  def self.test_files(test_file)
+    out_files = []
+    if File.directory?(test_file)
+      # If the input is directory then get the list
+      # of files from that directory and
+      # Sort the Test files in alphabetical order.
+      # Recursively looks for test files
+      files_list = Dir.glob("#{test_file}/*").sort
+      files_list.each do |tfile|
+        out_files.concat(test_files(tfile))
+      end
+    elsif test_file.end_with?(".tl")
+      # Tests playlist, if a file contains the list of
+      # test files, then all the test file paths are collected
+      # If the list can contain dir path or test file or a playlist
+      File.readlines(test_file).each do |tfile|
+        out_files.concat(test_files(tfile))
+      end
+    elsif test_file.end_with?(".t")
+      # Just the test file
+      out_files << test_file
+    else
+      STDERR.puts("Ignored parsing the Unknown file.  file=#{test_file}")
+    end
+
+    out_files
+  end
+
+  def self.testfile_summary(tmetrics)
+    res = tmetrics[:ok] ? "OK" : "NOT OK"
+
+    if tmetrics[:error] != ""
+      err_line = tmetrics[:error].split("\n").join("\n# ")
+      STDERR.puts "# #{err_line}"
+    end
+
+    STDERR.puts "------- COMPLETED(#{res}, tests=#{tmetrics[:total]}, passed=#{tmetrics[:passed]}, failed=#{tmetrics[:failed]})"
+  end
+
+  def self.verbose_summary(metrics)
+    metrics.files.each do |tfile|
+      p_args = [
+        tfile[:ok] ? "OK    " : "NOT OK",
+        tfile[:total],
+        tfile[:passed],
+        tfile[:failed],
+        tfile[:duration_seconds],
+        tfile[:speed_tpm],
+        tfile[:index_duration_seconds],
+        tfile[:file]
+      ]
+      puts "%s  %5d  %6d  %5d  %9d  %10d  %14d  %s" % p_args
+    end
+    puts "-------------------------------------------------------------------------"
+  end
+
+  def self.summary(metrics)
+    p_args = [
+      metrics.ok ? "OK    " : "NOT OK",
+      metrics.total,
+      metrics.passed,
+      metrics.failed,
+      metrics.duration_seconds,
+      metrics.speed_tpm,
+      metrics.index_duration_seconds
+    ]
+    puts "%s  %5d  %6d  %5d  %9d  %10d  %14d" % p_args
+
+    return if metrics.total_files <= 1
+
+    puts
+    puts("Test Files: Total=#{metrics.total_files}  " +
+           "Passed=#{metrics.passed_files}  " +
+           "Failed=#{metrics.failed_files}")
+  end
+
+  def self.run_all(options)
+    tfiles = test_files(options.test_file)
+    if tfiles.size == 0
+      STDERR.puts "No tests Available"
+      exit EXIT_NO_TESTS
+    end
+
+    metrics = Metrics.new
+
+    # Indexing: Collect number of tests from each test file
+    STDERR.print "Indexing test files... " if options.verbose
+
+    tfiles.each do |test_file|
+      t1 = Time.now
+      t_count = tests_count(test_file)
+      dur = (Time.now - t1).round
+      if t_count == -2
+        metrics.file_add(test_file, 0, dur)
+        metrics.file_error(test_file, "Failed to index.\n#{err}")
+      elsif t_count == -1
+        metrics.file_add(test_file, 0, dur)
+        metrics.file_error(test_file, "Failed to find Test file")
+      else
+        metrics.file_add(test_file, t_count, dur)
+      end
+    end
+
+    if options.verbose
+      STDERR.puts "done.  tests=#{metrics.total}  " +
+                  "test_files=#{metrics.total_files}  " +
+                  "duration_seconds=#{metrics.index_duration_seconds}"
+    end
+
+    # Execution
+    tfiles.each do |test_file|
+      t1 = Time.now
+      tfile = metrics.file(test_file)
+      passed = run(test_file, tfile[:total], options)
+      dur = (Time.now - t1).round
+      metrics.file_completed(test_file, passed, dur)
+
+      # Test file summary if -vv is provided
+      testfile_summary(metrics.file(test_file)) if options.verbose
+    end
+
+    puts
+    puts
+    puts "STATUS  TESTS  PASSED  FAILED  DUR(SEC)  SPEED(TPM)  INDEX DUR(SEC)  FILE"
+    puts "========================================================================="
+
+    # Show full summary if -v
+    verbose_summary(metrics) if options.verbose
+
+    # Final Table Summary
+    summary(metrics)
+
+    puts
+    puts "Result: #{metrics.ok ? "Pass" : "Fail"}"
+    exit (metrics.ok ? 0 : 1)
   end
 
   Options = Struct.new(:verbose, :test_file, :runner, :dry_run)
@@ -192,11 +302,11 @@ if options.runner
     load File.expand_path(options.test_file)
   rescue LoadError
     # Return -1 so that dry run will validate this
-    puts -1
+    puts ":::-1"
     exit
   end
 
   puts ":::#{BinnacleTestsRunner.tests_count}" if BinnacleTestsRunner.dry_run?
 else
-  Binnacle.run(options)
+  Binnacle.run_all(options)
 end
