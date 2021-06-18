@@ -6,5 +6,6 @@ build:
 	echo "VERSION = \"${BINNACLE_VERSION}\"" >> ./bin/binnacle
 	cat src/runner.rb >> ./bin/binnacle
 	cat src/plugins.rb >> ./bin/binnacle
+	cat src/metrics.rb >> ./bin/binnacle
 	cat src/binnacle.rb >> ./bin/binnacle
 	chmod +x ./bin/binnacle
