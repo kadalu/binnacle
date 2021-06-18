@@ -3,7 +3,7 @@ require "json"
 class Metrics
   attr_reader :total, :passed, :duration_seconds,
               :total_files, :passed_files,
-              :index_duration_seconds, :files
+              :index_duration_seconds, :files, :ignored_files
 
   def initialize
     @total = 0
@@ -14,7 +14,12 @@ class Metrics
     @passed_files = 0
     @index_duration_seconds = 0
     @files = []
+    @ignored_files = []
     @files_index = {}
+  end
+
+  def file_ignore(test_file)
+    @ignored_files << test_file
   end
 
   def file_add(test_file, count, index_duration_seconds)
@@ -31,8 +36,7 @@ class Metrics
       :ok => false,
       :duration_seconds => 0,
       :speed_tpm => 0,
-      :index_duration_seconds => index_duration_seconds,
-      :error => ""
+      :index_duration_seconds => index_duration_seconds
     }
 
     # Return the index of this file
@@ -42,11 +46,6 @@ class Metrics
   def file(test_file)
     idx = @files_index[test_file]
     @files[idx]
-  end
-
-  def file_error(test_file, error)
-    idx = @files_index[test_file]
-    @files[idx][:error] = error
   end
 
   def speed_tpm
@@ -96,7 +95,8 @@ class Metrics
       :passed_files => @passed_files,
       :failed_files => failed_files,
       :index_duration_seconds => @index_duration_seconds,
-      :files => @files
+      :files => @files,
+      :ignored_files => @ignored_files
     }.to_json
   end
 end

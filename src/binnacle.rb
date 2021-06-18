@@ -60,7 +60,9 @@ module Binnacle
     out, err, status = Open3.capture3(
                 "ruby #{__FILE__} #{test_file} --runner --dry-run")
 
-    return -2 if !status.success?
+    if !status.success?
+      return [-2, "Failed to parse Test file #{test_file}\n#{err}"]
+    end
 
     total_tests = 0
     out.strip.split("\n").each do |line|
@@ -69,7 +71,11 @@ module Binnacle
       end
     end
 
-    total_tests
+    if total_tests == -1
+      return [-1, "Failed to find Test file #{test_file}"]
+    end
+
+    [total_tests, ""]
   end
 
   def self.run(test_file, total_tests, opts)
@@ -142,11 +148,6 @@ module Binnacle
   def self.testfile_summary(tmetrics)
     res = tmetrics[:ok] ? "OK" : "NOT OK"
 
-    if tmetrics[:error] != ""
-      err_line = tmetrics[:error].split("\n").join("\n# ")
-      STDERR.puts "# #{err_line}"
-    end
-
     STDERR.puts "------- COMPLETED(#{res}, tests=#{tmetrics[:total]}, passed=#{tmetrics[:passed]}, failed=#{tmetrics[:failed]})"
   end
 
@@ -199,16 +200,14 @@ module Binnacle
     # Indexing: Collect number of tests from each test file
     STDERR.print "Indexing test files... " if options.verbose
 
+    index_errors = []
     tfiles.each do |test_file|
       t1 = Time.now
-      t_count = tests_count(test_file)
+      t_count, err = tests_count(test_file)
       dur = (Time.now - t1).round
-      if t_count == -2
-        metrics.file_add(test_file, 0, dur)
-        metrics.file_error(test_file, "Failed to index.\n#{err}")
-      elsif t_count == -1
-        metrics.file_add(test_file, 0, dur)
-        metrics.file_error(test_file, "Failed to find Test file")
+      if t_count < 0
+        index_errors << err
+        metrics.file_ignore(test_file)
       else
         metrics.file_add(test_file, t_count, dur)
       end
@@ -221,9 +220,9 @@ module Binnacle
     end
 
     # Execution
-    tfiles.each do |test_file|
+    metrics.files.each do |tfile|
+      test_file = tfile[:file]
       t1 = Time.now
-      tfile = metrics.file(test_file)
       passed = run(test_file, tfile[:total], options)
       dur = (Time.now - t1).round
       metrics.file_completed(test_file, passed, dur)
@@ -243,17 +242,32 @@ module Binnacle
     # Final Table Summary
     summary(metrics)
 
+    if options.result_json != ""
+      File.open(options.result_json, "w") do |json_file|
+        json_file.write(metrics.to_json)
+      end
+    end
+
+    if index_errors.size > 0
+      STDERR.puts
+      STDERR.puts "Index errors:"
+      index_errors.each do |err|
+        STDERR.puts err
+      end
+    end
+
     puts
     puts "Result: #{metrics.ok ? "Pass" : "Fail"}"
     exit (metrics.ok ? 0 : 1)
   end
 
-  Options = Struct.new(:verbose, :test_file, :runner, :dry_run)
+  Options = Struct.new(:verbose, :test_file, :runner, :dry_run, :result_json)
 
   def self.args
     args = Options.new("binnacle - Simple Test Framework")
     args.verbose = false
     args.runner = false
+    args.result_json = ""
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = "Usage: binnacle [options] <testfile>"
@@ -268,6 +282,10 @@ module Binnacle
 
       opts.on("--dry-run", "Dry run to get number of tests") do
         args.dry_run = true
+      end
+
+      opts.on("--results-json=FILE", "Results JSON file") do |json_file|
+        args.result_json = json_file
       end
 
       opts.on("-h", "--help", "Prints this help") do
