@@ -6,7 +6,7 @@ Download and install using the following commands. Ruby should be installed on t
 
 [source,console]
 ----
-$ curl -L https://github.com/kadalu/binnacle/releases/download/0.3.0/binnacle -o binnacle
+$ curl -L https://github.com/kadalu/binnacle/releases/latest/download/binnacle -o binnacle
 ----
 
 Make the binnacle file executable.
@@ -43,11 +43,22 @@ Now run this test file by running,
 [source,console]
 ----
 $ binnacle hello.t -v
-1..1
-# stat: /var/www/html/index.html: stat: No such file or directory
+Indexing test files... done.  tests=1  test_files=1  duration_seconds=0
+
+
+------- STARTED(tests=1, file="/hello.t")
 not ok   1 - node=local cmd="TEST stat /var/www/html/index.html"
-TOTAL: 1  PASSED: 0  FAILED: 1  SKIPPED: 0  TODOs: 0
-Result: FAIL
+# stat: cannot stat '/var/www/html/index.html': No such file or directory
+------- COMPLETED(NOT OK, tests=1, passed=0, failed=1)
+
+
+STATUS  TESTS  PASSED  FAILED  DUR(SEC)  SPEED(TPM)  INDEX DUR(SEC)  FILE
+=========================================================================
+NOT OK      1       0      1          0           0               0  /hello.t
+-------------------------------------------------------------------------
+NOT OK      1       0      1          0           0               0
+
+Result: Fail
 ----
 
 If that file exists then it will print the output as below
@@ -55,8 +66,19 @@ If that file exists then it will print the output as below
 [source,console]
 ----
 $ binnacle hello.t -v
-1..1
+Indexing test files... done.  tests=1  test_files=1  duration_seconds=0
+
+
+------- STARTED(tests=1, file="/hello.t")
 ok       1 - node=local cmd="TEST stat /var/www/html/index.html"
-TOTAL: 1  PASSED: 1  FAILED: 0  SKIPPED: 0  TODOs: 0
-Result: PASS
+------- COMPLETED(OK, tests=1, passed=1, failed=0)
+
+
+STATUS  TESTS  PASSED  FAILED  DUR(SEC)  SPEED(TPM)  INDEX DUR(SEC)  FILE
+=========================================================================
+OK          1       1      0          0           0               0  /hello.t
+-------------------------------------------------------------------------
+OK          1       1      0          0           0               0
+
+Result: Pass
 ----

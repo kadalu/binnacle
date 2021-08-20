@@ -101,6 +101,11 @@ module Binnacle
           else
             puts line
           end
+        else
+          # Only print the Test case Summary line
+          if line.start_with?("ok") || line.start_with?("not ok")
+            puts line
+          end
         end
         outlines << line
       end
