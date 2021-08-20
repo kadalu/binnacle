@@ -17,6 +17,17 @@ Or validate for a specific exit code
 TEST 1, "ls /non/existing/dir"
 ----
 
+== RUN
+
+This is very similar to `TEST` but ignores if any error. This will be useful when some cleanup command to be run but that may fail.
+
+For example,
+
+[source,ruby]
+----
+RUN losetup -d /dev/non_existing_dev
+----
+
 == EXPECT
 
 Runs the given command and validates the output only if exit code of the command is zero.

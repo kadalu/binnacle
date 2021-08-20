@@ -172,4 +172,24 @@ module BinnacleTestPlugins
       BinnacleTestsRunner.NOT_OK(title, fail_message)
     end
   end
+
+  # Run any command and ignore if any Error
+  #
+  # ```
+  # RUN "rm -rf testdir"
+  # RUN "ls /non/existing"
+  # ```
+  def RUN(cmd)
+    return "" if BinnacleTestsRunner.dry_run?
+
+    ret, out, err = BinnacleTestsRunner.execute(cmd)
+    puts "# node=#{BinnacleTestsRunner.node} cmd=\"RUN #{cmd}\""
+
+    if ret != 0
+      puts "# #{err.split("\n").join("\n# ")}"
+    end
+
+    out
+  end
+
 end

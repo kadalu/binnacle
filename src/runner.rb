@@ -42,6 +42,10 @@ module BinnacleTestsRunner
     @@tests_count
   end
 
+  def self.escaped_cmd(cmd)
+    cmd.gsub("'", %Q['"'"'])
+  end
+
   # If node is not local then add respective prefix
   # to ssh or docker exec
   # TODO: support more options for ssh, like port and key
@@ -49,9 +53,9 @@ module BinnacleTestsRunner
     return cmd if @@node == "local"
 
     if @@remote_plugin == "ssh"
-      "ssh #{@@node} /bin/bash -c '#{cmd}'"
+      "ssh #{@@node} /bin/bash -c '#{escaped_cmd(cmd)}'"
     elsif @@remote_plugin == "docker"
-      "docker exec -i #{@@node} /bin/bash -c '#{cmd}'"
+      "docker exec -i #{@@node} /bin/bash -c '#{escaped_cmd(cmd)}'"
     else
       cmd
     end
