@@ -1,13 +1,15 @@
 require "json"
 
 class Metrics
-  attr_reader :total, :passed, :duration_seconds,
+  attr_reader :total, :passed, :failed, :skipped, :duration_seconds,
               :total_files, :passed_files,
               :index_duration_seconds, :files, :ignored_files
 
   def initialize
     @total = 0
     @passed = 0
+    @failed = 0
+    @skipped = 0
     @duration_seconds = 0
     @speed_tpm = 0
     @total_files = 0
@@ -33,6 +35,7 @@ class Metrics
       :total => count,
       :passed => 0,
       :failed => 0,
+      :skipped => 0,
       :ok => false,
       :duration_seconds => 0,
       :speed_tpm => 0,
@@ -58,25 +61,24 @@ class Metrics
     @total == @passed
   end
 
-  def failed
-    @total - @passed
-  end
-
   def failed_files
     @total_files - @passed_files
   end
 
-  def file_completed(test_file, passed, duration_seconds)
+  def file_completed(test_file, passed, failed, skipped, duration_seconds)
     idx = @files_index[test_file]
     @files[idx][:passed] = passed
     @files[idx][:duration_seconds] = duration_seconds
     if duration_seconds > 0
       @files[idx][:speed_tpm] = (@files[idx][:total] * 60 / duration_seconds.to_f).round
     end
-    @files[idx][:failed] = @files[idx][:total] - passed
+    @files[idx][:failed] = failed
+    @files[idx][:skipped] = skipped
     @files[idx][:ok] = @files[idx][:total] == passed
 
     @passed += passed
+    @failed += failed
+    @skipped += skipped
     @passed_files += 1 if @files[idx][:ok]
     @duration_seconds += duration_seconds
 

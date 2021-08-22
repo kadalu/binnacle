@@ -55,6 +55,34 @@ module BinnacleTestPlugins
     BinnacleTestsRunner.remote_plugin = prev if !prev.nil?
   end
 
+  # Two ways to set the remote plugin
+  # Using as Block
+  #
+  # ```
+  # EXIT_ON_NOT_OK true do
+  #   TEST "stat /var/www/html/index.html"
+  # end
+  # ```
+  #
+  # or without block
+  #
+  # ```
+  # EXIT_ON_NOT_OK true
+  # TEST "stat /var/www/html/index.html"
+  # ```
+  def EXIT_ON_NOT_OK(flag)
+    if !block_given?
+      BinnacleTestsRunner.exit_on_not_ok = flag
+      return
+    end
+
+    prev = BinnacleTestsRunner.exit_on_not_ok?
+    BinnacleTestsRunner.exit_on_not_ok = flag
+    yield
+  ensure
+    BinnacleTestsRunner.exit_on_not_ok = prev if !prev.nil?
+  end
+
   # Test any command for its return code
   #
   # ```
@@ -81,6 +109,8 @@ module BinnacleTestPlugins
     ret, out, err = BinnacleTestsRunner.execute(cmd)
     BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, out, err, expect_ret)
 
+    exit if (BinnacleTestsRunner.exit_on_not_ok? && ret != 0)
+
     out
   end
 
@@ -98,6 +128,7 @@ module BinnacleTestPlugins
 
     if ret != 0
       BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, out, err, 0)
+      exit if BinnacleTestsRunner.exit_on_not_ok?
     else
       if "#{expect_value}" == out.strip
         BinnacleTestsRunner.OK(cmd)
@@ -106,6 +137,7 @@ module BinnacleTestPlugins
           cmd,
           "\"#{expect_value}\"(Expected) != \"#{out.strip}\"(Actual)"
         )
+        exit if BinnacleTestsRunner.exit_on_not_ok?
       end
     end
   end
@@ -146,6 +178,7 @@ module BinnacleTestPlugins
       BinnacleTestsRunner.OK(title)
     else
       BinnacleTestsRunner.NOT_OK(title, fail_message)
+      exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
 
@@ -170,6 +203,7 @@ module BinnacleTestPlugins
       BinnacleTestsRunner.OK(title)
     else
       BinnacleTestsRunner.NOT_OK(title, fail_message)
+      exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
 
