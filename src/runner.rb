@@ -5,6 +5,7 @@ module BinnacleTestsRunner
   @@tests_count = 0
   @@node = "local"
   @@remote_plugin = "ssh"
+  @@exit_on_not_ok = false
 
   # Only for getting the number of tests
   def self.dry_run?
@@ -32,6 +33,14 @@ module BinnacleTestsRunner
 
   def self.remote_plugin
     @@remote_plugin
+  end
+
+  def self.exit_on_not_ok=(flag)
+    @@exit_on_not_ok = flag
+  end
+
+  def self.exit_on_not_ok?
+    @@exit_on_not_ok
   end
 
   def self.inc_counter

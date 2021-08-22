@@ -126,3 +126,22 @@ end
 # Continue with default plugin
 TEST "command 3"
 ----
+
+== EXIT_ON_NOT_OK
+
+By default, on error of a test case Test file execution is not terminated. Use this option to Halt the execution on error when required.
+
+[source,ruby]
+----
+TEST "command 1"
+
+# On setting this all future tests will use this setting
+EXIT_ON_NOT_OK true
+TEST "command 2"
+
+# Only use this setting for some commands
+EXIT_ON_NOT_OK true do
+    TEST "command 3"
+    TEST "command 4"
+end
+----

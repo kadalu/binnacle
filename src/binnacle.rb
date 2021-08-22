@@ -23,15 +23,13 @@ EXIT_FAILED_TO_EXECUTE = 7
 module Binnacle
   # Parse Test Anything Protocol output format
   class TapParser
-    attr_reader :total, :passed, :failed, :todos, :skipped
+    attr_reader :passed, :failed, :todos
 
     def initialize(lines)
       @lines = lines
-      @total = 0
       @passed = 0
       @failed = 0
       @todos = 0
-      @skipped = 0
       parse
     end
 
@@ -46,12 +44,9 @@ module Binnacle
           if line.include?("#")
             directive = (line.split("#")[-1]).split[0].downcase
             @todos += 1 if directive == "todo"
-            @skipped += 1 if directive == "skip"
           end
         end
       end
-
-      @total = @passed + @failed
     end
   end
 
@@ -86,11 +81,13 @@ module Binnacle
       STDERR.puts "------- STARTED(tests=#{total_tests}, file=\"#{test_file}\")"
     end
 
-    return 0 if total_tests <= 0
+    return [0, 0, 0] if total_tests <= 0
 
     cmd = "ruby #{__FILE__} #{test_file} --runner"
 
     passed = 0
+    skipped = 0
+    failed = 0
     Open3.popen2e(cmd) do |stdin, stdout_and_stderr, wait_thr|
       outlines = []
       stdout_and_stderr.each do |line|
@@ -114,12 +111,14 @@ module Binnacle
       if status.success?
         parser = TapParser.new(outlines)
         passed = parser.passed
+        failed = parser.failed
+        skipped = total_tests - (parser.passed + parser.failed)
       else
         STDERR.puts "# Failed to execute" if opts.verbose
       end
     end
 
-    passed
+    [passed, failed, skipped]
   end
 
   def self.test_files(test_file)
@@ -153,7 +152,7 @@ module Binnacle
   def self.testfile_summary(tmetrics)
     res = tmetrics[:ok] ? "OK" : "NOT OK"
 
-    STDERR.puts "------- COMPLETED(#{res}, tests=#{tmetrics[:total]}, passed=#{tmetrics[:passed]}, failed=#{tmetrics[:failed]})"
+    STDERR.puts "------- COMPLETED(#{res}, tests=#{tmetrics[:total]}, passed=#{tmetrics[:passed]}, failed=#{tmetrics[:failed]}, skipped=#{tmetrics[:skipped]})"
   end
 
   def self.verbose_summary(metrics)
@@ -163,14 +162,15 @@ module Binnacle
         tfile[:total],
         tfile[:passed],
         tfile[:failed],
+        tfile[:skipped],
         tfile[:duration_seconds],
         tfile[:speed_tpm],
         tfile[:index_duration_seconds],
         tfile[:file]
       ]
-      puts "%s  %5d  %6d  %5d  %9d  %10d  %14d  %s" % p_args
+      puts "%s  %5d  %6d  %5d  %7d  %9d  %10d  %14d  %s" % p_args
     end
-    puts "-------------------------------------------------------------------------"
+    puts "---------------------------------------------------------------------------------"
   end
 
   def self.summary(metrics)
@@ -179,18 +179,19 @@ module Binnacle
       metrics.total,
       metrics.passed,
       metrics.failed,
+      metrics.skipped,
       metrics.duration_seconds,
       metrics.speed_tpm,
       metrics.index_duration_seconds
     ]
-    puts "%s  %5d  %6d  %5d  %9d  %10d  %14d" % p_args
+    puts "%s  %5d  %6d  %5d  %7d  %9d  %10d  %14d" % p_args
 
     return if metrics.total_files <= 1
 
     puts
     puts("Test Files: Total=#{metrics.total_files}  " +
-           "Passed=#{metrics.passed_files}  " +
-           "Failed=#{metrics.failed_files}")
+         "Passed=#{metrics.passed_files}  " +
+         "Failed=#{metrics.failed_files}")
   end
 
   def self.run_all(options)
@@ -228,9 +229,9 @@ module Binnacle
     metrics.files.each do |tfile|
       test_file = tfile[:file]
       t1 = Time.now
-      passed = run(test_file, tfile[:total], options)
+      passed, failed, skipped = run(test_file, tfile[:total], options)
       dur = (Time.now - t1).round
-      metrics.file_completed(test_file, passed, dur)
+      metrics.file_completed(test_file, passed, failed, skipped, dur)
 
       # Test file summary if -vv is provided
       testfile_summary(metrics.file(test_file)) if options.verbose
@@ -238,8 +239,8 @@ module Binnacle
 
     puts
     puts
-    puts "STATUS  TESTS  PASSED  FAILED  DUR(SEC)  SPEED(TPM)  INDEX DUR(SEC)  FILE"
-    puts "========================================================================="
+    puts "STATUS  TESTS  PASSED  FAILED  SKIPPED  DUR(SEC)  SPEED(TPM)  INDEX DUR(SEC)  FILE"
+    puts "=================================================================================="
 
     # Show full summary if -v
     verbose_summary(metrics) if options.verbose
