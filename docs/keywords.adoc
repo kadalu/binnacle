@@ -145,3 +145,30 @@ EXIT_ON_NOT_OK true do
     TEST "command 4"
 end
 ----
+
+== Embed other test files
+
+Use `load` keyword to include the tests/utilities from other files.
+
+For example, `repeat_tests.t`
+
+[source,ruby]
+----
+TEST "command 1"
+TEST "command 2"
+----
+
+and the `main.t` tests file
+
+[source,ruby]
+----
+USE_REMOTE_PLUGIN "docker"
+
+["node1.example.com", "node2.example.com", "node3.example.com"].each do |node|
+    USE_NODE node
+
+    load "./repeat_tests.t"
+end
+----
+
+*Note*: Load path is relative to the current directory from where the `binnacle` command is called.
