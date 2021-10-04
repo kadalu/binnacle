@@ -127,6 +127,61 @@ end
 TEST "command 3"
 ----
 
+== USE_SSH_USER
+
+Set SSH user. Default is "root". This option is only applicable with `USE_REMOTE_PLUGIN ssh`.
+
+[source,ruby]
+----
+USE_NODE "node1.example.com"
+USE_REMOTE_PLUGIN "ssh"
+USE_SSH_USER "ubuntu"
+
+TEST "stat ~/Public"
+----
+
+== USE_SSH_PEM_FILE
+
+Set SSH pem file path. Default is `~/.ssh/id_rsa`. This option is only applicable with `USE_REMOTE_PLUGIN ssh`.
+
+[source,ruby]
+----
+USE_NODE "node1.example.com"
+USE_REMOTE_PLUGIN "ssh"
+USE_SSH_USER "ubuntu"
+USE_SSH_PEM_FILE "~/.ssh/automation.pem"
+
+TEST "stat ~/Public"
+----
+
+== USE_SSH_SUDO
+
+Use `sudo` with all the commands. Default is `false`. This option is only applicable with `USE_REMOTE_PLUGIN ssh`.
+
+[source,ruby]
+----
+USE_NODE "node1.example.com"
+USE_REMOTE_PLUGIN "ssh"
+USE_SSH_USER "ubuntu"
+USE_SSH_SUDO true
+
+TEST "echo \"127.0.0.1 server1.example.com\" >> /etc/hosts"
+----
+
+[source,ruby]
+----
+USE_NODE "node1.example.com"
+USE_REMOTE_PLUGIN "ssh"
+USE_SSH_USER "ubuntu"
+
+USE_SSH_SUDO true do
+    TEST "echo \"127.0.0.1 server1.example.com\" >> /etc/hosts"
+end
+
+# Run without sudo
+TEST "stat ~/Public"
+----
+
 == EXIT_ON_NOT_OK
 
 By default, on error of a test case Test file execution is not terminated. Use this option to Halt the execution on error when required.

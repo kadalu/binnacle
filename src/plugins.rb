@@ -55,6 +55,90 @@ module BinnacleTestPlugins
     BinnacleTestsRunner.remote_plugin = prev if !prev.nil?
   end
 
+  # Two ways to set the ssh sudo
+  # Using as Block
+  #
+  # ```
+  # USE_SSH_SUDO true do
+  #   TEST "stat /var/www/html/index.html"
+  # end
+  # ```
+  #
+  # or without block
+  #
+  # ```
+  # USE_SSH_SUDO true
+  # TEST "stat /var/www/html/index.html"
+  # ```
+  def USE_SSH_SUDO(flag)
+    if !block_given?
+      BinnacleTestsRunner.ssh_sudo = flag
+      return
+    end
+
+    prev = BinnacleTestsRunner.ssh_sudo
+    BinnacleTestsRunner.ssh_sudo = flag
+    yield
+  ensure
+    BinnacleTestsRunner.ssh_sudo = prev if !prev.nil?
+  end
+
+  # Two ways to set the ssh user
+  # Using as Block
+  #
+  # ```
+  # USE_SSH_USER "ubuntu" do
+  #   TEST "stat /var/www/html/index.html"
+  # end
+  # ```
+  #
+  # or without block
+  #
+  # ```
+  # USE_SSH_USER "ubuntu"
+  # TEST "stat /var/www/html/index.html"
+  # ```
+  def USE_SSH_USER(user)
+    if !block_given?
+      BinnacleTestsRunner.ssh_user = user
+      return
+    end
+
+    prev = BinnacleTestsRunner.ssh_user
+    BinnacleTestsRunner.ssh_user = user
+    yield
+  ensure
+    BinnacleTestsRunner.ssh_user = prev if !prev.nil?
+  end
+
+  # Two ways to set the ssh user
+  # Using as Block
+  #
+  # ```
+  # USE_SSH_PEM_FILE "/home/ubuntu/.ssh/id_rsa" do
+  #   TEST "stat /var/www/html/index.html"
+  # end
+  # ```
+  #
+  # or without block
+  #
+  # ```
+  # USE_SSH_PEM_FILE "/home/ubuntu/.ssh/id_rsa"
+  # TEST "stat /var/www/html/index.html"
+  # ```
+  def USE_SSH_PEM_FILE(pem_file)
+    if !block_given?
+      BinnacleTestsRunner.ssh_pem_file = pem_file
+      return
+    end
+
+    prev = BinnacleTestsRunner.ssh_pem_file
+    BinnacleTestsRunner.ssh_pem_file = pem_file
+    yield
+  ensure
+    BinnacleTestsRunner.ssh_pem_file = prev if !prev.nil?
+  end
+
   # Two ways to set the remote plugin
   # Using as Block
   #

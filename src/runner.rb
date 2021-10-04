@@ -6,6 +6,46 @@ module BinnacleTestsRunner
   @@node = "local"
   @@remote_plugin = "ssh"
   @@exit_on_not_ok = false
+  @@ssh_user = "root"
+  @@ssh_sudo = false
+  @@ssh_port = 22
+  @@ssh_pem_file = "~/.ssh/id_rsa"
+
+  # set ssh user
+  def self.ssh_user=(user)
+    @@ssh_user = user
+  end
+
+  def self.ssh_user
+    @@ssh_user
+  end
+
+  # set ssh port
+  def self.ssh_port=(port)
+    @@ssh_port = port
+  end
+
+  def self.ssh_port
+    @@ssh_port
+  end
+
+  # Set the ssh sudo flag
+  def self.ssh_sudo=(val)
+    @@ssh_sudo = val
+  end
+
+  def self.ssh_sudo?
+    @@ssh_sudo
+  end
+
+  # set the ssh_pem_file path
+  def self.ssh_pem_file=(pem_file)
+    @@ssh_pem_file = pem_file
+  end
+
+  def self.ssh_pem_file
+    @@ssh_pem_file
+  end
 
   # Only for getting the number of tests
   def self.dry_run?
@@ -55,14 +95,20 @@ module BinnacleTestsRunner
     cmd.gsub("'", %Q['"'"'])
   end
 
+  def self.escaped_ssh_cmd(cmd)
+    cmd = "/bin/bash -c '#{escaped_cmd(cmd)}'"
+    cmd = @@ssh_sudo ? "sudo #{cmd}" : cmd
+
+    escaped_cmd(cmd)
+  end
+
   # If node is not local then add respective prefix
   # to ssh or docker exec
-  # TODO: support more options for ssh, like port and key
   def self.full_cmd(cmd)
     return cmd if @@node == "local"
 
     if @@remote_plugin == "ssh"
-      "ssh #{@@node} /bin/bash -c '#{escaped_cmd(cmd)}'"
+      "ssh #{@@ssh_user}@#{@@node} -i #{@@ssh_pem_file} -p #{@@ssh_port} '#{escaped_ssh_cmd(cmd)}'"
     elsif @@remote_plugin == "docker"
       "docker exec -i #{@@node} /bin/bash -c '#{escaped_cmd(cmd)}'"
     else
