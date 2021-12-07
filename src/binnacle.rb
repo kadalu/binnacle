@@ -317,20 +317,25 @@ module Binnacle
   end
 end
 
-options = Binnacle.args
-if options.runner
-  include BinnacleTestPlugins
-  BinnacleTestsRunner.dry_run = options.dry_run
+begin
+  options = Binnacle.args
+  if options.runner
+    include BinnacleTestPlugins
+    BinnacleTestsRunner.dry_run = options.dry_run
 
-  begin
-    load File.expand_path(options.test_file)
-  rescue LoadError
-    # Return -1 so that dry run will validate this
-    puts ":::-1"
-    exit
+    begin
+      load File.expand_path(options.test_file)
+    rescue LoadError
+      # Return -1 so that dry run will validate this
+      puts ":::-1"
+      exit
+    end
+
+    puts ":::#{BinnacleTestsRunner.tests_count}" if BinnacleTestsRunner.dry_run?
+  else
+    Binnacle.run_all(options)
   end
-
-  puts ":::#{BinnacleTestsRunner.tests_count}" if BinnacleTestsRunner.dry_run?
-else
-  Binnacle.run_all(options)
+rescue Interrupt
+  STDERR.puts "Exiting.."
+  exit 1
 end
