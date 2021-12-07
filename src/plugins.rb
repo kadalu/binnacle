@@ -310,4 +310,49 @@ module BinnacleTestPlugins
     out
   end
 
+  # Validate if the given two values are equal
+  #
+  # ```
+  # EQUAL 10, 10, "Test Title"
+  # ```
+  #
+  # ```
+  # EQUAL var1, 100, "Value is 100"
+  # ```
+  def EQUAL(value1, value2, title)
+    BinnacleTestsRunner.inc_counter
+
+    return if BinnacleTestsRunner.dry_run?
+
+    if value1 == value2
+      BinnacleTestsRunner.OK(title)
+    else
+      fail_message = "Value1: #{value1}\nValue2: #{value2}"
+      BinnacleTestsRunner.NOT_OK(title, fail_message)
+      exit if BinnacleTestsRunner.exit_on_not_ok?
+    end
+  end
+
+  # Validate if the given two values are not equal
+  #
+  # ```
+  # NOT_EQUAL 10, 11, "Test Title"
+  # ```
+  #
+  # ```
+  # NOT_EQUAL var1, 100, "Value is 100"
+  # ```
+  def NOT_EQUAL(value1, value2, title)
+    BinnacleTestsRunner.inc_counter
+
+    return if BinnacleTestsRunner.dry_run?
+
+    if value1 != value2
+      BinnacleTestsRunner.OK(title)
+    else
+      fail_message = "value1 and value2 are equal(value1: #{value1})"
+      BinnacleTestsRunner.NOT_OK(title, fail_message)
+      exit if BinnacleTestsRunner.exit_on_not_ok?
+    end
+  end
 end

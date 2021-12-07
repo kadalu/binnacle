@@ -49,6 +49,24 @@ To be implemented
 
 To be implemented
 
+== EQUAL
+
+Test if given two values are Equal
+
+[source,ruby]
+----
+EQUAL var1, 100, "Test if var1 == 100"
+----
+
+== NOT_EQUAL
+
+Test if given two values are not Equal.
+
+[source,ruby]
+----
+NOT_EQUAL var1, 100, "Test if var1 != 100"
+----
+
 == TRUE
 
 Test any expression
