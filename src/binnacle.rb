@@ -19,6 +19,9 @@ EXIT_TEST_FILE_NOT_FOUND = 5
 EXIT_NO_TESTS = 6
 EXIT_FAILED_TO_EXECUTE = 7
 
+# Set STDOUT and STDERR sync=true
+$stdout.sync = true
+$stderr.sync = true
 
 module Binnacle
   # Parse Test Anything Protocol output format
