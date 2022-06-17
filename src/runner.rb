@@ -10,6 +10,15 @@ module BinnacleTestsRunner
   @@ssh_sudo = false
   @@ssh_port = 22
   @@ssh_pem_file = "~/.ssh/id_rsa"
+  @@emit_stdout = false
+
+  def self.emit_stdout=(val)
+    @@emit_stdout = val
+  end
+
+  def self.emit_stdout?
+    @@emit_stdout
+  end
 
   # set ssh user
   def self.ssh_user=(user)
@@ -116,17 +125,32 @@ module BinnacleTestsRunner
     end
   end
 
-  # Execute the command and return the status
-  # TODO: Handle Timeout
-  def self.execute(cmd)
-    begin
-      out, err, status = Open3.capture3(self.full_cmd(cmd))
-      ret = status.exitstatus
-    rescue Exception
-      out, err, ret = ["", "Unknown command", -1]
-    end
+  # Execute the command and return the status.
+  # Execute and Stream STDOUT and STDERR
+  # Based on the blog: https://nickcharlton.net/posts/ruby-
+  # subprocesses-with-stdout-stderr-streams.html
+  def self.execute(cmd, &block)
+    Open3.popen3(cmd) do |stdin, stdout, stderr, thread|
+      # read each stream from a new thread
+      { :out => stdout, :err => stderr }.each do |key, stream|
+        Thread.new do
+          until (line = stream.gets).nil? do
+            if key == :out
+              yield line, nil, nil
+            else
+              yield nil, line, nil
+            end
+          end
+        end
+      end
 
-    [ret, out, err]
+      thread.join
+      status = thread.value
+
+      yield nil, nil, status.exitstatus
+    end
+  rescue Exception
+    yield nil, "Unknown Command", -1
   end
 
   def self.print_test_state(ok_msg, test_id, msg)
@@ -152,15 +176,15 @@ module BinnacleTestsRunner
     OK_NOT_OK(caller_locations(1,1)[0].label, cmd, false, diagnostic)
   end
 
-  def self.CMD_OK_NOT_OK(cmd, ret, out, err, expect_ret = 0)
-    out_desc = "node=#{@@node} cmd=\"#{caller_locations(1,1)[0].label} #{cmd}\""
+  def self.CMD_OK_NOT_OK(cmd, ret, expect_ret = 0)
+    test_cmd_name = caller_locations(1,1)[0].label.gsub("block in ", "")
+    out_desc = "node=#{@@node} cmd=\"#{test_cmd_name} #{cmd}\""
     out_desc += " expect_ret=#{expect_ret}" if expect_ret != 0
 
     if ret == expect_ret
       self.print_test_state("ok", self.tests_count, out_desc)
     else
       self.print_test_state("not ok", self.tests_count, out_desc)
-      puts "# #{err.split("\n").join("\n# ")}"
     end
   end
 end

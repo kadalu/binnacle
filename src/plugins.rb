@@ -167,6 +167,34 @@ module BinnacleTestPlugins
     BinnacleTestsRunner.exit_on_not_ok = prev if !prev.nil?
   end
 
+  # Two ways to set the STDOUT emit.
+  # Using as Block
+  #
+  # ```
+  # EMIT_STDOUT true do
+  #   TEST "stat /var/www/html/index.html"
+  # end
+  # ```
+  #
+  # or without block
+  #
+  # ```
+  # EMIT_STDOUT true
+  # TEST "stat /var/www/html/index.html"
+  # ```
+  def EMIT_STDOUT(val)
+    if !block_given?
+      BinnacleTestsRunner.emit_stdout = val
+      return
+    end
+
+    prev = BinnacleTestsRunner.emit_stdout?
+    BinnacleTestsRunner.emit_stdout = val
+    yield
+  ensure
+    BinnacleTestsRunner.emit_stdout = prev if !prev.nil?
+  end
+
   # Test any command for its return code
   #
   # ```
@@ -190,12 +218,21 @@ module BinnacleTestPlugins
       cmd = args[1]
     end
 
-    ret, out, err = BinnacleTestsRunner.execute(cmd)
-    BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, out, err, expect_ret)
+    out = []
+    BinnacleTestsRunner.execute(cmd) do |stdout_line, stderr_line, ret|
+      unless stdout_line.nil?
+        out << stdout_line.strip
+        puts "# #{stdout_line}" if BinnacleTestsRunner.emit_stdout?
+      end
+      STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
 
-    exit if (BinnacleTestsRunner.exit_on_not_ok? && ret != 0)
+      unless ret.nil?
+        BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, expect_ret)
+        exit if (BinnacleTestsRunner.exit_on_not_ok? && ret != 0)
+      end
+    end
 
-    out
+    out.join("\n")
   end
 
   # Test the output of any command matches the given value
@@ -208,21 +245,27 @@ module BinnacleTestPlugins
 
     return if BinnacleTestsRunner.dry_run?
 
-    ret, out, err = BinnacleTestsRunner.execute(cmd)
-
-    if ret != 0
-      BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, out, err, 0)
-      exit if BinnacleTestsRunner.exit_on_not_ok?
-    else
-      if "#{expect_value}" == out.strip
-        BinnacleTestsRunner.OK(cmd)
-      else
-        BinnacleTestsRunner.NOT_OK(
-          cmd,
-          "\"#{expect_value}\"(Expected) != \"#{out.strip}\"(Actual)"
-        )
-        exit if BinnacleTestsRunner.exit_on_not_ok?
+    BinnacleTestsRunner.execute(cmd) do |stdout_line, stderr_line, ret|
+      unless stdout_line.nil?
+        out << stdout_line.strip
+        puts "# #{stdout_line}" if BinnacleTestsRunner.emit_stdout?
       end
+      STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
+
+      unless ret.nil?
+        BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, 0)
+        exit if (BinnacleTestsRunner.exit_on_not_ok? && ret != 0)
+      end
+    end
+
+    if "#{expect_value}" == out.strip
+      BinnacleTestsRunner.OK(cmd)
+    else
+      BinnacleTestsRunner.NOT_OK(
+        cmd,
+        "\"#{expect_value}\"(Expected) != \"#{out.strip}\"(Actual)"
+      )
+      exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
 
@@ -300,14 +343,16 @@ module BinnacleTestPlugins
   def RUN(cmd)
     return "" if BinnacleTestsRunner.dry_run?
 
-    ret, out, err = BinnacleTestsRunner.execute(cmd)
-    puts "# node=#{BinnacleTestsRunner.node} cmd=\"RUN #{cmd}\""
-
-    if ret != 0
-      puts "# #{err.split("\n").join("\n# ")}"
+    out = []
+    BinnacleTestsRunner.execute(cmd) do |stdout_line, stderr_line, ret|
+      unless stdout_line.nil?
+        out << stdout_line.strip
+        puts "# #{stdout_line}" if BinnacleTestsRunner.emit_stdout?
+      end
+      STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
     end
 
-    out
+    out.join("\n")
   end
 
   # Validate if the given two values are equal

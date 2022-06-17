@@ -245,3 +245,36 @@ end
 ----
 
 *Note*: Load path is relative to the current directory from where the `binnacle` command is called.
+
+== Emit Stdout
+
+Some times printing the `STDOUT` output in test report gives better understanding of the Test case.
+
+[source,ruby]
+----
+TEST "command 1"
+
+# On setting this all future tests will use this setting
+EMIT_STDOUT true
+TEST "command 2"
+
+# Only use this setting for some commands
+EMIT_STDOUT true do
+    TEST "command 3"
+    TEST "command 4"
+end
+----
+
+Example output of `TEST "stat /var/www/html/index.html"`
+
+----
+#   File: /var/www/html/index.html
+#   Size: 13            Blocks: 8          IO Block: 4096   regular file
+# Device: 10307h/66311d Inode: 4325842     Links: 1
+# Access: (0664/-rw-rw-r--)  Uid: ( 1000/aravinda)   Gid: ( 1000/aravinda)
+# Access: 2022-06-17 13:11:52.807419056 +0530
+# Modify: 2022-06-17 13:11:52.807419056 +0530
+# Change: 2022-06-17 13:11:52.807419056 +0530
+#  Birth: -
+ok       1 - node=local cmd="TEST stat /var/www/html/index.html"
+----
