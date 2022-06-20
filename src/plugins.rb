@@ -221,7 +221,7 @@ module BinnacleTestPlugins
     out = []
     BinnacleTestsRunner.execute(cmd) do |stdout_line, stderr_line, ret|
       unless stdout_line.nil?
-        out << stdout_line.strip
+        out << stdout_line.rstrip
         puts "# #{stdout_line}" if BinnacleTestsRunner.emit_stdout?
       end
       STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
@@ -247,7 +247,7 @@ module BinnacleTestPlugins
 
     BinnacleTestsRunner.execute(cmd) do |stdout_line, stderr_line, ret|
       unless stdout_line.nil?
-        out << stdout_line.strip
+        out << stdout_line.rstrip
         puts "# #{stdout_line}" if BinnacleTestsRunner.emit_stdout?
       end
       STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
@@ -346,7 +346,7 @@ module BinnacleTestPlugins
     out = []
     BinnacleTestsRunner.execute(cmd) do |stdout_line, stderr_line, ret|
       unless stdout_line.nil?
-        out << stdout_line.strip
+        out << stdout_line.rstrip
         puts "# #{stdout_line}" if BinnacleTestsRunner.emit_stdout?
       end
       STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
