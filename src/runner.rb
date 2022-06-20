@@ -136,9 +136,9 @@ module BinnacleTestsRunner
         Thread.new do
           until (line = stream.gets).nil? do
             if key == :out
-              yield line, nil, nil
+              yield line.chomp, nil, nil
             else
-              yield nil, line, nil
+              yield nil, line.chomp, nil
             end
           end
         end
