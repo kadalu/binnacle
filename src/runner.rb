@@ -11,6 +11,8 @@ module BinnacleTestsRunner
   @@ssh_port = 22
   @@ssh_pem_file = "~/.ssh/id_rsa"
   @@emit_stdout = false
+  @@start_time = Time.now
+  @@test_name = ""
 
   def self.emit_stdout=(val)
     @@emit_stdout = val
@@ -154,38 +156,38 @@ module BinnacleTestsRunner
     yield nil, "Unknown Command", -1
   end
 
-  def self.print_test_state(ok_msg, test_id, msg)
-    printf("%-6s %3d - %s\n", ok_msg, test_id, msg)
+  def self.test_start
+    @@start_time = Time.now
+    @@test_name = caller_locations(1,1)[0].label
+    puts
   end
 
-  def self.OK_NOT_OK(test_name, cmd, ok, diagnostic=nil)
-    out_desc = "node=#{@@node} cmd=\"#{test_name} #{cmd}\""
-
-    ok_msg = ok ? "ok" : "not ok"
-    self.print_test_state(ok_msg, self.tests_count, out_desc)
+  def self.test_end(cmd, ok=nil, diagnostic=nil, ret=nil, expect_ret=0)
+    duration = Time.now - @@start_time
+    out_desc = "duration=%.2fs node=%s cmd=\"%s %s\"" % [
+      duration,
+      @@node,
+      @@test_name,
+      cmd
+    ]
+    out_desc += " ret=#{ret}" if !ret.nil? && ret != 0
+    out_desc += " expect_ret=#{expect_ret}" if expect_ret != 0
 
     if !diagnostic.nil? && diagnostic != ""
       puts "# #{diagnostic.split("\n").join("\n# ")}"
     end
+
+    ok = ret == expect_ret unless ret.nil?
+
+    ok_msg = ok ? "ok" : "not ok"
+    self.print_test_state(ok_msg, self.tests_count, out_desc)
   end
 
-  def self.OK(cmd, diagnostic=nil)
-    OK_NOT_OK(caller_locations(1,1)[0].label, cmd, true, diagnostic)
+  def self.cmd_test_end(cmd, ret, expect_ret=0, diagnostic=nil)
+    test_end(cmd, nil, diagnostic, ret, expect_ret)
   end
 
-  def self.NOT_OK(cmd, diagnostic=nil)
-    OK_NOT_OK(caller_locations(1,1)[0].label, cmd, false, diagnostic)
-  end
-
-  def self.CMD_OK_NOT_OK(cmd, ret, expect_ret = 0)
-    test_cmd_name = caller_locations(1,1)[0].label.gsub("block in ", "")
-    out_desc = "node=#{@@node} cmd=\"#{test_cmd_name} #{cmd}\""
-    out_desc += " expect_ret=#{expect_ret}" if expect_ret != 0
-
-    if ret == expect_ret
-      self.print_test_state("ok", self.tests_count, out_desc)
-    else
-      self.print_test_state("not ok", self.tests_count, out_desc)
-    end
+  def self.print_test_state(ok_msg, test_id, msg)
+    puts "%-6s %3d - %s" % [ok_msg, test_id, msg]
   end
 end

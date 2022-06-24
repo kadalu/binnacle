@@ -211,6 +211,8 @@ module BinnacleTestPlugins
 
     return "" if BinnacleTestsRunner.dry_run?
 
+    BinnacleTestsRunner.test_start
+
     expect_ret = 0
     cmd = args[0]
     if args.size > 1
@@ -227,7 +229,7 @@ module BinnacleTestPlugins
       STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
 
       unless ret.nil?
-        BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, expect_ret)
+        BinnacleTestsRunner.cmd_test_end(cmd, ret, expect_ret)
         exit if (BinnacleTestsRunner.exit_on_not_ok? && ret != 0)
       end
     end
@@ -245,6 +247,7 @@ module BinnacleTestPlugins
 
     return if BinnacleTestsRunner.dry_run?
 
+    BinnacleTestsRunner.test_start
     out = []
     BinnacleTestsRunner.execute(cmd) do |stdout_line, stderr_line, ret|
       unless stdout_line.nil?
@@ -254,17 +257,18 @@ module BinnacleTestPlugins
       STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
 
       unless ret.nil?
-        BinnacleTestsRunner.CMD_OK_NOT_OK(cmd, ret, 0)
+        BinnacleTestsRunner.cmd_test_end(cmd, ret, 0) if ret != 0
         exit if (BinnacleTestsRunner.exit_on_not_ok? && ret != 0)
       end
     end
 
     if "#{expect_value}" == out.join
-      BinnacleTestsRunner.OK(cmd)
+      BinnacleTestsRunner.test_end(cmd, ok=true)
     else
-      BinnacleTestsRunner.NOT_OK(
+      BinnacleTestsRunner.test_end(
         cmd,
-        "\"#{expect_value}\"(Expected) != \"#{out.strip}\"(Actual)"
+        ok=false,
+        diagnostic="\"#{expect_value}\"(Expected) != \"#{out.strip}\"(Actual)"
       )
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
@@ -277,7 +281,7 @@ module BinnacleTestPlugins
         value = eval(value)
       rescue Exception => ex
         fail_message += "\n#{ex.message}"
-        BinnacleTestsRunner.NOT_OK(title, fail_message)
+        BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
         return nil
       end
     end
@@ -299,13 +303,14 @@ module BinnacleTestPlugins
 
     return if BinnacleTestsRunner.dry_run?
 
+    BinnacleTestsRunner.test_start
     value = value_from_expr(value, title, fail_message)
     return if value.nil?
 
     if value
-      BinnacleTestsRunner.OK(title)
+      BinnacleTestsRunner.test_end(title, ok=true)
     else
-      BinnacleTestsRunner.NOT_OK(title, fail_message)
+      BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
@@ -324,13 +329,14 @@ module BinnacleTestPlugins
 
     return if BinnacleTestsRunner.dry_run?
 
+    BinnacleTestsRunner.test_start
     value = value_from_expr(value, title, fail_message)
     return if value.nil?
 
     if !value
-      BinnacleTestsRunner.OK(title)
+      BinnacleTestsRunner.test_end(title, ok=true)
     else
-      BinnacleTestsRunner.NOT_OK(title, fail_message)
+      BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
@@ -344,6 +350,7 @@ module BinnacleTestPlugins
   def RUN(cmd)
     return "" if BinnacleTestsRunner.dry_run?
 
+    BinnacleTestsRunner.test_start
     out = []
     BinnacleTestsRunner.execute(cmd) do |stdout_line, stderr_line, ret|
       unless stdout_line.nil?
@@ -370,11 +377,12 @@ module BinnacleTestPlugins
 
     return if BinnacleTestsRunner.dry_run?
 
+    BinnacleTestsRunner.test_start
     if value1 == value2
-      BinnacleTestsRunner.OK(title)
+      BinnacleTestsRunner.test_end(title, ok=true)
     else
       fail_message = "Value1: #{value1}\nValue2: #{value2}"
-      BinnacleTestsRunner.NOT_OK(title, fail_message)
+      BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
@@ -393,11 +401,12 @@ module BinnacleTestPlugins
 
     return if BinnacleTestsRunner.dry_run?
 
+    BinnacleTestsRunner.test_start
     if value1 != value2
-      BinnacleTestsRunner.OK(title)
+      BinnacleTestsRunner.test_end(title, ok=true)
     else
       fail_message = "value1 and value2 are equal(value1: #{value1})"
-      BinnacleTestsRunner.NOT_OK(title, fail_message)
+      BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
