@@ -232,7 +232,7 @@ module BinnacleTestPlugins
       end
     end
 
-    out.join("\n")
+    out.join
   end
 
   # Test the output of any command matches the given value
@@ -245,6 +245,7 @@ module BinnacleTestPlugins
 
     return if BinnacleTestsRunner.dry_run?
 
+    out = []
     BinnacleTestsRunner.execute(cmd) do |stdout_line, stderr_line, ret|
       unless stdout_line.nil?
         out << stdout_line
@@ -258,7 +259,7 @@ module BinnacleTestPlugins
       end
     end
 
-    if "#{expect_value}" == out.strip
+    if "#{expect_value}" == out.join
       BinnacleTestsRunner.OK(cmd)
     else
       BinnacleTestsRunner.NOT_OK(
@@ -352,7 +353,7 @@ module BinnacleTestPlugins
       STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
     end
 
-    out.join("\n")
+    out.join
   end
 
   # Validate if the given two values are equal
