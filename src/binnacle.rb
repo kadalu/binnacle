@@ -96,11 +96,7 @@ module Binnacle
       stdout_and_stderr.each do |line|
         # Print output/error only in verbose mode
         if opts.verbose
-          if !line.start_with?("#") && !line.start_with?("ok") && !line.start_with?("not ok")
-            puts "# #{line}"
-          else
-            puts line
-          end
+          puts line
         else
           # Only print the Test case Summary line
           if line.start_with?("ok") || line.start_with?("not ok")
@@ -155,39 +151,46 @@ module Binnacle
   def self.testfile_summary(tmetrics)
     res = tmetrics[:ok] ? "OK" : "NOT OK"
 
-    STDERR.puts "------- COMPLETED(#{res}, tests=#{tmetrics[:total]}, passed=#{tmetrics[:passed]}, failed=#{tmetrics[:failed]}, skipped=#{tmetrics[:skipped]})"
+    STDERR.puts
+    STDERR.puts "------- COMPLETED(%s, total=%d, passed=%d, failed=%d, skipped=%d, duration=%.2fs, file=\"%s\")" % [
+                  res,
+                  tmetrics[:total],
+                  tmetrics[:passed],
+                  tmetrics[:failed],
+                  tmetrics[:skipped],
+                  tmetrics[:duration_seconds],
+                  tmetrics[:file]
+                ]
   end
 
   def self.verbose_summary(metrics)
     metrics.files.each do |tfile|
-      p_args = [
-        tfile[:ok] ? "OK    " : "NOT OK",
-        tfile[:total],
-        tfile[:passed],
-        tfile[:failed],
-        tfile[:skipped],
-        tfile[:duration_seconds],
-        tfile[:speed_tpm],
-        tfile[:index_duration_seconds],
-        tfile[:file]
-      ]
-      puts "%s  %5d  %6d  %5d  %7d  %9d  %10d  %14d  %s" % p_args
+      puts "%s  %5d  %6d  %5d  %7d  %13.2fs  %10d  %18.2fs  %s" % [
+             tfile[:ok] ? "OK    " : "NOT OK",
+             tfile[:total],
+             tfile[:passed],
+             tfile[:failed],
+             tfile[:skipped],
+             tfile[:duration_seconds],
+             tfile[:speed_tpm],
+             tfile[:index_duration_seconds],
+             tfile[:file]
+           ]
     end
-    puts "---------------------------------------------------------------------------------"
+    puts "--------------------------------------------------------------------------------------------"
   end
 
   def self.summary(metrics)
-    p_args = [
-      metrics.ok ? "OK    " : "NOT OK",
-      metrics.total,
-      metrics.passed,
-      metrics.failed,
-      metrics.skipped,
-      metrics.duration_seconds,
-      metrics.speed_tpm,
-      metrics.index_duration_seconds
-    ]
-    puts "%s  %5d  %6d  %5d  %7d  %9d  %10d  %14d" % p_args
+    puts "%s  %5d  %6d  %5d  %7d  %13.2fs  %10d  %18.2fs" % [
+           metrics.ok ? "OK    " : "NOT OK",
+           metrics.total,
+           metrics.passed,
+           metrics.failed,
+           metrics.skipped,
+           metrics.duration_seconds,
+           metrics.speed_tpm,
+           metrics.index_duration_seconds
+         ]
 
     return if metrics.total_files <= 1
 
@@ -213,7 +216,7 @@ module Binnacle
     tfiles.each do |test_file|
       t1 = Time.now
       t_count, err = tests_count(test_file)
-      dur = (Time.now - t1).round
+      dur = Time.now - t1
       if t_count < 0
         index_errors << err
         metrics.file_ignore(test_file)
@@ -233,7 +236,7 @@ module Binnacle
       test_file = tfile[:file]
       t1 = Time.now
       passed, failed, skipped = run(test_file, tfile[:total], options)
-      dur = (Time.now - t1).round
+      dur = Time.now - t1
       metrics.file_completed(test_file, passed, failed, skipped, dur)
 
       # Test file summary if -vv is provided
@@ -242,8 +245,8 @@ module Binnacle
 
     puts
     puts
-    puts "STATUS  TESTS  PASSED  FAILED  SKIPPED  DUR(SEC)  SPEED(TPM)  INDEX DUR(SEC)  FILE"
-    puts "=================================================================================="
+    puts "STATUS  TOTAL  PASSED  FAILED  SKIPPED  DURATION(SEC)  SPEED(TPM)  INDEX DURATION(SEC)  FILE"
+    puts "============================================================================================"
 
     # Show full summary if -v
     verbose_summary(metrics) if options.verbose

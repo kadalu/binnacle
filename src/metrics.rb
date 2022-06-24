@@ -10,11 +10,11 @@ class Metrics
     @passed = 0
     @failed = 0
     @skipped = 0
-    @duration_seconds = 0
+    @duration_seconds = 0.0
     @speed_tpm = 0
     @total_files = 0
     @passed_files = 0
-    @index_duration_seconds = 0
+    @index_duration_seconds = 0.0
     @files = []
     @ignored_files = []
     @files_index = {}
@@ -37,7 +37,7 @@ class Metrics
       :failed => 0,
       :skipped => 0,
       :ok => false,
-      :duration_seconds => 0,
+      :duration_seconds => 0.0,
       :speed_tpm => 0,
       :index_duration_seconds => index_duration_seconds
     }
