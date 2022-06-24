@@ -131,19 +131,20 @@ module BinnacleTestsRunner
   # subprocesses-with-stdout-stderr-streams.html
   def self.execute(cmd, &block)
     Open3.popen3(cmd) do |stdin, stdout, stderr, thread|
-      # read each stream from a new thread
-      { :out => stdout, :err => stderr }.each do |key, stream|
-        Thread.new do
-          until (line = stream.gets).nil? do
-            if key == :out
-              yield line.chomp, nil, nil
-            else
-              yield nil, line.chomp, nil
-            end
-          end
+      stdout_t = Thread.new do
+        until (line = stdout.gets).nil? do
+          yield line, nil, nil
         end
       end
 
+      stderr_t = Thread.new do
+        until (line = stderr.gets).nil? do
+          yield nil, line, nil
+        end
+      end
+
+      stdout_t.join
+      stderr_t.join
       thread.join
       status = thread.value
 
