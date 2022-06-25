@@ -132,7 +132,7 @@ module BinnacleTestsRunner
   # Based on the blog: https://nickcharlton.net/posts/ruby-
   # subprocesses-with-stdout-stderr-streams.html
   def self.execute(cmd, &block)
-    Open3.popen3(cmd) do |stdin, stdout, stderr, thread|
+    Open3.popen3(self.full_cmd(cmd)) do |stdin, stdout, stderr, thread|
       stdout_t = Thread.new do
         until (line = stdout.gets).nil? do
           yield line, nil, nil
@@ -152,8 +152,8 @@ module BinnacleTestsRunner
 
       yield nil, nil, status.exitstatus
     end
-  rescue Exception
-    yield nil, "Unknown Command", -1
+  rescue Exception => ex
+    yield nil, "Unknown Command (#{ex})", -1
   end
 
   def self.test_start
