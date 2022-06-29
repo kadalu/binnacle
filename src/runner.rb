@@ -159,7 +159,7 @@ module BinnacleTestsRunner
   def self.test_start
     @@start_time = Time.now
     @@test_name = caller_locations(1,1)[0].label
-    puts
+    puts "==="
   end
 
   def self.test_end(cmd, ok=nil, diagnostic=nil, ret=nil, expect_ret=0)

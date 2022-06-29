@@ -1,6 +1,6 @@
 # -*- mode: ruby -*-
 
-TEST "stat tests/keywords.t"
+puts TEST "stat tests/keywords.t"
 TEST 1, "stat /non/existing/file"
 TEST "sleep 0.5"
 EXPECT "Hello World!", "echo -n Hello World!"
@@ -16,3 +16,4 @@ FALSE "#{x} == 15", "Check if x != 15"
 
 EQUAL x, 10, "Check if x == 10"
 NOT_EQUAL x, 15, "Check if x != 15"
+puts TEST "stat tests/keywords.t"
