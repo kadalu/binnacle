@@ -24,35 +24,6 @@ $stdout.sync = true
 $stderr.sync = true
 
 module Binnacle
-  # Parse Test Anything Protocol output format
-  class TapParser
-    attr_reader :passed, :failed, :todos
-
-    def initialize(lines)
-      @lines = lines
-      @passed = 0
-      @failed = 0
-      @todos = 0
-      parse
-    end
-
-    # If line starts with ok then successful test
-    # If line starts with not ok then failed test
-    # If ok/not ok line includes "# todo" or "# skip"
-    def parse
-      @lines.each do |line|
-        @passed += 1 if line.start_with?("ok")
-        @failed += 1 if line.start_with?("not ok")
-        if line.start_with?("ok") || line.start_with?("not ok")
-          if line.include?("#")
-            directive = (line.split("#")[-1]).split[0].downcase
-            @todos += 1 if directive == "todo"
-          end
-        end
-      end
-    end
-  end
-
   def self.tests_count(test_file)
     # Dry run and get the count of tests in the given file
     out, err, status = Open3.capture3(
@@ -93,25 +64,41 @@ module Binnacle
     failed = 0
     Open3.popen2e(cmd) do |stdin, stdout_and_stderr, wait_thr|
       outlines = []
+      summary_line = ""
       stdout_and_stderr.each do |line|
-        # Print output/error only in verbose mode
-        if opts.verbose
-          puts line
-        else
-          # Only print the Test case Summary line
-          if line.start_with?("ok") || line.start_with?("not ok")
-            puts line
+        # New Test started. Print if summary of previous test is not printed
+        if line == "===\n"
+          if summary_line != ""
+            puts summary_line
+            summary_line = ""
           end
+
+          puts
+          next
         end
-        outlines << line
+
+        # Only print the Test case Summary line
+        if line.start_with?("ok")
+          summary_line = line
+          passed += 1
+          next
+        elsif line.start_with?("not ok")
+          summary_line = line
+          failed += 1
+          next
+        end
+
+        # Print output/error only in verbose mode
+        puts(line.start_with?("#") ? line : "# #{line}") if opts.verbose
       end
+
+      # Print the last Test status
+      puts summary_line if summary_line != ""
+
       status = wait_thr.value
 
       if status.success?
-        parser = TapParser.new(outlines)
-        passed = parser.passed
-        failed = parser.failed
-        skipped = total_tests - (parser.passed + parser.failed)
+        skipped = total_tests - (passed + failed)
       else
         STDERR.puts "# Failed to execute" if opts.verbose
       end
