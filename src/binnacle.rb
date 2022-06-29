@@ -73,7 +73,6 @@ module Binnacle
             summary_line = ""
           end
 
-          puts
           next
         end
 
