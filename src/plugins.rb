@@ -268,7 +268,7 @@ module BinnacleTestPlugins
       BinnacleTestsRunner.test_end(
         cmd,
         ok=false,
-        diagnostic="\"#{expect_value}\"(Expected) != \"#{out.strip}\"(Actual)"
+        diagnostic="Expected:\n--\n#{expect_value}\n--\nActual:\n--\n#{out.join}\n--\n"
       )
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
@@ -381,7 +381,7 @@ module BinnacleTestPlugins
     if value1 == value2
       BinnacleTestsRunner.test_end(title, ok=true)
     else
-      fail_message = "Value1: #{value1}\nValue2: #{value2}"
+      fail_message = "Value1:\n--\n#{value1}\n--\n\nValue2:\n--\n#{value2}\n--\n"
       BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
