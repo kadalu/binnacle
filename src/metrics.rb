@@ -39,7 +39,8 @@ class Metrics
       :ok => false,
       :duration_seconds => 0.0,
       :speed_tpm => 0,
-      :index_duration_seconds => index_duration_seconds
+      :index_duration_seconds => index_duration_seconds,
+      :failed_tests => []
     }
 
     # Return the index of this file
@@ -65,7 +66,7 @@ class Metrics
     @total_files - @passed_files
   end
 
-  def file_completed(test_file, passed, failed, skipped, duration_seconds)
+  def file_completed(test_file, passed, failed, skipped, duration_seconds, failed_tests)
     idx = @files_index[test_file]
     @files[idx][:passed] = passed
     @files[idx][:duration_seconds] = duration_seconds
@@ -75,6 +76,7 @@ class Metrics
     @files[idx][:failed] = failed
     @files[idx][:skipped] = skipped
     @files[idx][:ok] = @files[idx][:total] == passed
+    @files[idx][:failed_tests] = failed_tests
 
     @passed += passed
     @failed += failed

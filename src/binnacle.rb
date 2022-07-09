@@ -55,13 +55,14 @@ module Binnacle
       STDERR.puts "------- STARTED(tests=#{total_tests}, file=\"#{test_file}\")"
     end
 
-    return [0, 0, 0] if total_tests <= 0
+    return [0, 0, 0, []] if total_tests <= 0
 
     cmd = "ruby #{__FILE__} #{test_file} --runner"
 
     passed = 0
     skipped = 0
     failed = 0
+    failed_tests = []
     Open3.popen2e(cmd) do |stdin, stdout_and_stderr, wait_thr|
       outlines = []
       summary_line = ""
@@ -83,6 +84,7 @@ module Binnacle
           next
         elsif line.start_with?("not ok")
           summary_line = line
+          failed_tests << line.strip
           failed += 1
           next
         end
@@ -103,7 +105,7 @@ module Binnacle
       end
     end
 
-    [passed, failed, skipped]
+    [passed, failed, skipped, failed_tests]
   end
 
   def self.test_files(test_file)
@@ -186,6 +188,18 @@ module Binnacle
          "Failed=#{metrics.failed_files}")
   end
 
+  def self.failed_tests_summary(metrics)
+    failed_test_data = ""
+    metrics.files.each do |tfile|
+      failed_test_data += "%s\n" % tfile[:file] if tfile[:failed_tests].size > 0
+      tfile[:failed_tests].each do |failed_test|
+        failed_test_data += "    %s\n" % failed_test
+      end
+    end
+    puts "\n\nFailed Tests:" if failed_test_data != ""
+    puts failed_test_data
+  end
+
   def self.run_all(options)
     tfiles = test_files(options.test_file)
     if tfiles.size == 0
@@ -221,9 +235,9 @@ module Binnacle
     metrics.files.each do |tfile|
       test_file = tfile[:file]
       t1 = Time.now
-      passed, failed, skipped = run(test_file, tfile[:total], options)
+      passed, failed, skipped, failed_tests = run(test_file, tfile[:total], options)
       dur = Time.now - t1
-      metrics.file_completed(test_file, passed, failed, skipped, dur)
+      metrics.file_completed(test_file, passed, failed, skipped, dur, failed_tests)
 
       # Test file summary if -vv is provided
       testfile_summary(metrics.file(test_file)) if options.verbose
@@ -239,6 +253,8 @@ module Binnacle
 
     # Final Table Summary
     summary(metrics)
+
+    failed_tests_summary(metrics)
 
     if options.result_json != ""
       File.open(options.result_json, "w") do |json_file|
