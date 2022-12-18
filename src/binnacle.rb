@@ -49,7 +49,7 @@ module Binnacle
 
   def self.run(test_file, total_tests, opts)
     # First line TAP output
-    if opts.verbose
+    if opts.verbose > 0
       puts
       puts
       STDERR.puts "------- STARTED(tests=#{total_tests}, file=\"#{test_file}\")"
@@ -57,7 +57,8 @@ module Binnacle
 
     return [0, 0, 0, []] if total_tests <= 0
 
-    cmd = "ruby #{__FILE__} #{test_file} --runner"
+    cmd_verbose_opts = ((0...opts.verbose).map {|o| "-v"}).join(" ")
+    cmd = "ruby #{__FILE__} #{test_file} --runner #{cmd_verbose_opts}"
 
     passed = 0
     skipped = 0
@@ -90,7 +91,7 @@ module Binnacle
         end
 
         # Print output/error only in verbose mode
-        puts(line.start_with?("#") ? line : "# #{line}") if opts.verbose
+        puts(line.start_with?("#") ? line : "# #{line}") if opts.verbose > 0
       end
 
       # Print the last Test status
@@ -101,7 +102,7 @@ module Binnacle
       if status.success?
         skipped = total_tests - (passed + failed)
       else
-        STDERR.puts "# Failed to execute" if opts.verbose
+        STDERR.puts "# Failed to execute" if opts.verbose > 0
       end
     end
 
@@ -210,7 +211,7 @@ module Binnacle
     metrics = Metrics.new
 
     # Indexing: Collect number of tests from each test file
-    STDERR.print "Indexing test files... " if options.verbose
+    STDERR.print "Indexing test files... " if options.verbose > 0
 
     index_errors = []
     tfiles.each do |test_file|
@@ -225,7 +226,7 @@ module Binnacle
       end
     end
 
-    if options.verbose
+    if options.verbose > 0
       STDERR.puts "done.  tests=#{metrics.total}  " +
                   "test_files=#{metrics.total_files}  " +
                   "duration_seconds=#{metrics.index_duration_seconds}"
@@ -240,7 +241,7 @@ module Binnacle
       metrics.file_completed(test_file, passed, failed, skipped, dur, failed_tests)
 
       # Test file summary if -vv is provided
-      testfile_summary(metrics.file(test_file)) if options.verbose
+      testfile_summary(metrics.file(test_file)) if options.verbose > 0
     end
 
     puts
@@ -249,7 +250,7 @@ module Binnacle
     puts "============================================================================================"
 
     # Show full summary if -v
-    verbose_summary(metrics) if options.verbose
+    verbose_summary(metrics) if options.verbose > 0
 
     # Final Table Summary
     summary(metrics)
@@ -279,7 +280,7 @@ module Binnacle
 
   def self.args
     args = Options.new("binnacle - Simple Test Framework")
-    args.verbose = false
+    args.verbose = 0
     args.runner = false
     args.result_json = ""
 
@@ -287,7 +288,7 @@ module Binnacle
       opts.banner = "Usage: binnacle [options] <testfile>"
 
       opts.on("-v", "--verbose", "Verbose output") do
-        args.verbose = true
+        args.verbose += 1
       end
 
       opts.on("-r", "--runner", "Run the tests") do
@@ -330,6 +331,7 @@ begin
   if options.runner
     include BinnacleTestPlugins
     BinnacleTestsRunner.dry_run = options.dry_run
+    BinnacleTestsRunner.emit_stdout = true if options.verbose > 1
 
     begin
       load File.expand_path(options.test_file)

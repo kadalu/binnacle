@@ -68,3 +68,5 @@ OK          1       1      0          0           0               0
 
 Result: Pass
 ----
+
+Use `-v` two times to show the output of each commands.
