@@ -207,6 +207,8 @@ module BinnacleTestPlugins
   # TEST 1, "ls /non/existing"
   # ```
   def TEST(*args)
+    caller_line = caller_locations.first
+    line = "#{caller_line.path}:#{caller_line.lineno}"
     BinnacleTestsRunner.inc_counter
 
     return "" if BinnacleTestsRunner.dry_run?
@@ -229,7 +231,7 @@ module BinnacleTestPlugins
       STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
 
       unless ret.nil?
-        BinnacleTestsRunner.cmd_test_end(cmd, ret, expect_ret)
+        BinnacleTestsRunner.cmd_test_end(cmd, ret: ret, expect_ret: expect_ret, line: line)
         exit if (BinnacleTestsRunner.exit_on_not_ok? && ret != 0)
       end
     end
@@ -243,6 +245,8 @@ module BinnacleTestPlugins
   # EXPECT 42, "echo 42"
   # ```
   def EXPECT(expect_value, cmd)
+    caller_line = caller_locations.first
+    line = "#{caller_line.path}:#{caller_line.lineno}"
     BinnacleTestsRunner.inc_counter
 
     return if BinnacleTestsRunner.dry_run?
@@ -257,31 +261,32 @@ module BinnacleTestPlugins
       STDERR.puts "# #{stderr_line}" unless stderr_line.nil?
 
       unless ret.nil?
-        BinnacleTestsRunner.cmd_test_end(cmd, ret, 0) if ret != 0
+        BinnacleTestsRunner.cmd_test_end(cmd, ret: ret, expect_ret: 0, line: line) if ret != 0
         exit if (BinnacleTestsRunner.exit_on_not_ok? && ret != 0)
       end
     end
 
     if "#{expect_value}" == out.join
-      BinnacleTestsRunner.test_end(cmd, ok=true)
+      BinnacleTestsRunner.test_end(cmd, ok: true, line: line)
     else
       BinnacleTestsRunner.test_end(
         cmd,
-        ok=false,
-        diagnostic="Expected:\n--\n#{expect_value}\n--\nActual:\n--\n#{out.join}\n--\n"
+        ok: false,
+        diagnostic: "Expected:\n--\n#{expect_value}\n--\nActual:\n--\n#{out.join}\n--\n",
+        line: line
       )
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
 
   # If value is String then evaluate it else return as is
-  def value_from_expr(value, title, fail_message)
+  def value_from_expr(value, title, fail_message, line = 0)
     if value.is_a? String
       begin
         value = eval(value)
       rescue Exception => ex
         fail_message += "\n#{ex.message}"
-        BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
+        BinnacleTestsRunner.test_end(title, ok: false, diagnostic: fail_message, line: line)
         return nil
       end
     end
@@ -299,18 +304,20 @@ module BinnacleTestPlugins
   # TRUE "#{value} == 100", "Value is 100", "Actual: #{value}"
   # ```
   def TRUE(value, title, fail_message = "")
+    caller_line = caller_locations.first
+    line = "#{caller_line.path}:#{caller_line.lineno}"
     BinnacleTestsRunner.inc_counter
 
     return if BinnacleTestsRunner.dry_run?
 
     BinnacleTestsRunner.test_start
-    value = value_from_expr(value, title, fail_message)
+    value = value_from_expr(value, title, fail_message, line)
     return if value.nil?
 
     if value
-      BinnacleTestsRunner.test_end(title, ok=true)
+      BinnacleTestsRunner.test_end(title, ok: true, line: line)
     else
-      BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
+      BinnacleTestsRunner.test_end(title, ok: false, diagnostic: fail_message, line: line)
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
@@ -325,6 +332,8 @@ module BinnacleTestPlugins
   # FALSE "#{value} == 100", "Value is not 100", "Actual: #{value}"
   # ```
   def FALSE(value, title, fail_message = "")
+    caller_line = caller_locations.first
+    line = "#{caller_line.path}:#{caller_line.lineno}"
     BinnacleTestsRunner.inc_counter
 
     return if BinnacleTestsRunner.dry_run?
@@ -334,9 +343,9 @@ module BinnacleTestPlugins
     return if value.nil?
 
     if !value
-      BinnacleTestsRunner.test_end(title, ok=true)
+      BinnacleTestsRunner.test_end(title, ok: true, line: line)
     else
-      BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
+      BinnacleTestsRunner.test_end(title, ok: false, diagnostic: fail_message, line: line)
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
@@ -373,16 +382,18 @@ module BinnacleTestPlugins
   # EQUAL var1, 100, "Value is 100"
   # ```
   def EQUAL(value1, value2, title)
+    caller_line = caller_locations.first
+    line = "#{caller_line.path}:#{caller_line.lineno}"
     BinnacleTestsRunner.inc_counter
 
     return if BinnacleTestsRunner.dry_run?
 
     BinnacleTestsRunner.test_start
     if value1 == value2
-      BinnacleTestsRunner.test_end(title, ok=true)
+      BinnacleTestsRunner.test_end(title, ok: true, line: line)
     else
       fail_message = "Value1:\n--\n#{value1}\n--\n\nValue2:\n--\n#{value2}\n--\n"
-      BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
+      BinnacleTestsRunner.test_end(title, ok: false, diagnostic: fail_message, line: line)
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
@@ -397,16 +408,18 @@ module BinnacleTestPlugins
   # NOT_EQUAL var1, 100, "Value is 100"
   # ```
   def NOT_EQUAL(value1, value2, title)
+    caller_line = caller_locations.first
+    line = "#{caller_line.path}:#{caller_line.lineno}"
     BinnacleTestsRunner.inc_counter
 
     return if BinnacleTestsRunner.dry_run?
 
     BinnacleTestsRunner.test_start
     if value1 != value2
-      BinnacleTestsRunner.test_end(title, ok=true)
+      BinnacleTestsRunner.test_end(title, ok: true, line: line)
     else
       fail_message = "value1 and value2 are equal(value1: #{value1})"
-      BinnacleTestsRunner.test_end(title, ok=false, diagnostic=fail_message)
+      BinnacleTestsRunner.test_end(title, ok: false, diagnostic: fail_message, line: line)
       exit if BinnacleTestsRunner.exit_on_not_ok?
     end
   end
