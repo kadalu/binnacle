@@ -162,11 +162,12 @@ module BinnacleTestsRunner
     puts "==="
   end
 
-  def self.test_end(cmd, ok=nil, diagnostic=nil, ret=nil, expect_ret=0)
+  def self.test_end(cmd, ok: nil, diagnostic: nil, ret: nil, expect_ret: 0, line: 0)
     duration = Time.now - @@start_time
-    out_desc = "duration=%.2fs node=%s cmd=\"%s %s\"" % [
+    out_desc = "duration=%.2fs node=%s line=%s cmd=\"%s %s\"" % [
       duration,
       @@node,
+      line,
       @@test_name,
       cmd
     ]
@@ -183,8 +184,8 @@ module BinnacleTestsRunner
     self.print_test_state(ok_msg, self.tests_count, out_desc)
   end
 
-  def self.cmd_test_end(cmd, ret, expect_ret=0, diagnostic=nil)
-    test_end(cmd, nil, diagnostic, ret, expect_ret)
+  def self.cmd_test_end(cmd, ret:, expect_ret: 0, diagnostic: nil, line: 0)
+    test_end(cmd, ok: nil, diagnostic: diagnostic, ret: ret, expect_ret: expect_ret, line: line)
   end
 
   def self.print_test_state(ok_msg, test_id, msg)
