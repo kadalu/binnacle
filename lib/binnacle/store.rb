@@ -29,8 +29,10 @@ module Binnacle
         block.call
         @data[name] = prev_value
       else
-        Store.set(key, value)
+        @data[name] = value
       end
+
+      nil
     end
 
     # Get the value from the Store for a given key
