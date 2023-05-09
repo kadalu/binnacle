@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require "binnacle"
+
+puts Binnacle.run(ARGV)
