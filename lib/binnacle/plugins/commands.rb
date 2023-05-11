@@ -25,6 +25,8 @@ module Binnacle
     Store.set(:remote_plugin, plugin, &block)
   end
 
+  default_config(:remote_plugin, 'local')
+
   # Two ways to set the node
   # Using as Block
   #
@@ -52,4 +54,6 @@ module Binnacle
   register_plugin 'use_container' do |value, &block|
     Store.set(:node_name, value, &block)
   end
+
+  default_config(:node_name, 'local')
 end

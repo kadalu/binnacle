@@ -2,4 +2,14 @@
 
 require "binnacle"
 
-puts Binnacle.run(ARGV)
+include Binnacle::Plugins
+
+files = ARGV
+files.each do |file|
+  # Reset all the custom configurations
+  # done in the previous tests
+  Binnacle::Store.reset
+
+  # Run the tests
+  Binnacle.run(file)
+end

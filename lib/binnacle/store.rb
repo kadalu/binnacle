@@ -4,6 +4,7 @@ module Binnacle
   # Global config store for Binnacle keywords
   class Store
     @data = {}
+    @default_values = {}
 
     # Add the given key value to the Store
     # Set the value temorarily if the block is given.
@@ -37,8 +38,10 @@ module Binnacle
 
     # Get the value from the Store for a given key
     def self.get(name)
-      @data[name] = nil unless @data.key?(name)
-      @data[name]
+      value = nil
+      value = @default_values[name] if @default_values.key?(name)
+      value = @data[name] if @data.key?(name)
+      value
     end
 
     # Remember the previous value before
@@ -61,6 +64,15 @@ module Binnacle
       end
 
       resp
+    end
+
+    def self.default_value(key, value)
+      @default_values[key] = value
+    end
+
+    # Removes all the key values except the default values
+    def self.reset
+      @data = {}
     end
   end
 end
