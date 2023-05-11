@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'open3'
+
 # Module with the collection of binnacle keywords
 # and helper utilities
 module Binnacle
@@ -29,5 +32,62 @@ module Binnacle
       # Like: `data = run "cat ~/report.csv"`
       data.key?(:output) ? data[:output] : nil
     end
+
+    def escaped_cmd(cmd)
+      cmd.gsub("'", %('"'"'))
+    end
+
+    def escaped_ssh_cmd(cmd)
+      cmd = "/bin/bash -c '#{escaped_cmd(cmd)}'"
+      cmd = @@ssh_sudo ? "sudo #{cmd}" : cmd
+
+      escaped_cmd(cmd)
+    end
+
+    # If node is not local then add respective prefix
+    # to ssh or docker exec
+    def full_cmd(cmd)
+      return cmd if Store.get(:node_name) == 'local'
+
+      if Store.get(:remote_plugin) == 'ssh'
+        "ssh #{Store.get(:ssh_user)}@#{Store.get(:node_name)} " \
+        "-i #{Store.get(:ssh_pem_file)} -p #{Store.get(:ssh_port)} " \
+        "'#{escaped_ssh_cmd(cmd)}'"
+      elsif Store.get(:remote_plugin) == 'docker'
+        "docker exec -i #{Store.get(:node_name)} /bin/bash -c '#{escaped_cmd(cmd)}'"
+      else
+        cmd
+      end
+    end
+
+    # Execute the command and return the status.
+    # Execute and Stream STDOUT and STDERR
+    # Based on the blog: https://nickcharlton.net/posts/ruby-
+    # subprocesses-with-stdout-stderr-streams.html
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/AbcSize
+    def execute(cmd)
+      Open3.popen3(full_cmd(cmd)) do |_stdin, stdout, stderr, thread|
+        stdout_t = Thread.new do
+          until (line = stdout.gets).nil?
+            yield line, nil, nil
+          end
+        end
+        stderr_t = Thread.new do
+          until (line = stderr.gets).nil?
+            yield nil, line, nil
+          end
+        end
+
+        [stdout_t, stderr_t, thread].each(&:join)
+        status = thread.value
+
+        yield nil, nil, status.exitstatus
+      end
+    rescue StandardError => e
+      yield nil, "Unknown Command (#{e})", -1
+    end
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/AbcSize
   end
 end

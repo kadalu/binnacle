@@ -56,4 +56,67 @@ module Binnacle
   end
 
   default_config(:node_name, 'local')
+
+  register_plugin 'enable_debug' do |value: true, &block|
+    Store.set(:debug, value, &block)
+  end
+
+  # Test any command for its return code
+  #
+  # ```
+  # run "ls /etc/hosts"
+  # ```
+  #
+  # or for any specific return code
+  #
+  # ```
+  # run 1, "ls /non/existing"
+  # ```
+  #
+  # To ignore errors, use `nil` return code
+  #
+  # ```
+  # run nil, "ls /non/existing"
+  # ```
+  register_plugin 'run' do |*args, **kwargs|
+    expect_ret = 0
+    cmd = args[0]
+    if args.size > 1
+      expect_ret = args[0]
+      cmd = args[1]
+    end
+
+    data = {
+      expect_ret: expect_ret,
+      task: "#{kwargs.fetch(:command, 'run')} \"#{cmd}\"",
+      ok: true
+    }
+
+    out = []
+    Utils.execute(cmd) do |stdout_line, stderr_line, ret|
+      unless stdout_line.nil?
+        out << stdout_line
+        puts "# #{stdout_line}" if Store.get(:debug)
+      end
+      warn "# #{stderr_line}" unless stderr_line.nil?
+
+      unless ret.nil?
+        data[:ret] = ret
+        data[:ok] = ret == expect_ret unless expect_ret.nil?
+      end
+    end
+
+    data[:output] = out.join
+    data
+  end
+
+  # For Backward compatibility. Ignores errors
+  register_plugin 'RUN' do |cmd|
+    data = {}
+    Store.set(:response, 'return') do
+      data = Plugins.run(nil, cmd, command: 'RUN')
+    end
+
+    data
+  end
 end
