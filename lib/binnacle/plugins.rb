@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'binnacle/utils'
+
 module Binnacle
   module_function
 
@@ -20,10 +22,10 @@ module Binnacle
         return nil if data.nil? || !data.key?(:ok)
 
         data[:duration_seconds] = Time.now - t1
-        data[:line] = caller_line_number
+        data[:line] = Utils.caller_line_number
         data[:node] = Store.get(:node_name)
 
-        response(data)
+        Utils.response(data)
       end
     end
   end
