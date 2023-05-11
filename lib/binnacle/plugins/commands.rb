@@ -119,4 +119,39 @@ module Binnacle
 
     data
   end
+
+  # Test any command for its return code
+  #
+  # ```
+  # test "ls /etc/hosts"
+  # ```
+  #
+  # or for any specific return code
+  #
+  # ```
+  # test 1, "ls /non/existing"
+  # ```
+  #
+  # To ignore errors, use `nil` return code
+  #
+  # ```
+  # test nil, "ls /non/existing"
+  # ```
+  register_plugin 'test' do |*args|
+    data = {}
+    Store.set(:response, 'return') do
+      data = Plugins.run(*args, command: 'test')
+    end
+
+    data
+  end
+
+  register_plugin 'TEST' do |*args|
+    data = {}
+    Store.set(:response, 'return') do
+      data = Plugins.run(*args, command: 'TEST')
+    end
+
+    data
+  end
 end
