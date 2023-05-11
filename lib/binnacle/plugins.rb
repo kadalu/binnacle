@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module Binnacle
+  module_function
+
   module Plugins
     module_function
 
@@ -25,10 +27,10 @@ module Binnacle
       end
     end
   end
-end
 
-module Binnacle
-  module_function
+  def default_config(key, value)
+    Store.default_value(key, value)
+  end
 
   def register_plugin(name, &plugin_block)
     Plugins.register(name, &plugin_block)
