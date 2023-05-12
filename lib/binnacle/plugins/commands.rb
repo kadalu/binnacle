@@ -154,4 +154,37 @@ module Binnacle
 
     data
   end
+
+  register_plugin 'expect' do |expect_value, cmd|
+    data = {}
+    Store.set(:response, 'return') do
+      # TODO: If expect_value is multiline or a variable is given
+      data = Plugins.run(0, cmd, command: "expect #{expect_value},")
+    end
+
+    if data[:ok] && data[:output] != expect_value.to_s
+      puts <<-MSG
+        Expected:
+        --
+        #{expect_value}
+        --
+        Actual:
+        --
+        #{data[:output]}
+        --
+      MSG
+      data[:ok] = false
+    end
+
+    data
+  end
+
+  register_plugin 'EXPECT' do |expect_value, cmd|
+    data = {}
+    Store.set(:response, 'return') do
+      data = Plugins.expect(expect_value, cmd)
+    end
+
+    data
+  end
 end

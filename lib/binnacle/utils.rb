@@ -14,23 +14,33 @@ module Binnacle
       "#{loc.path}:#{loc.lineno}"
     end
 
-    def response(data)
-      flag = Store.get(:response)
-
-      if flag == 'return'
-        return data
-      elsif flag == 'stdout'
+    def print_output(data, flag)
+      if flag == 'stdout'
         puts "#{data.to_json}\n\n"
       else
         warn "#{data.to_json}\n\n"
       end
+    end
+
+    def response(data)
+      flag = Store.get(:response)
+
+      return data if flag == 'return'
+
+      output = nil
+      if data.key?(:output)
+        output = data[:output]
+        data.delete(:output)
+      end
+
+      print_output(data, flag)
 
       exit 1 if Store.get(:exit_on_not_ok) && !data[:ok]
 
       # If output key exists in the response then
       # return it. It may be used by the caller.
       # Like: `data = run "cat ~/report.csv"`
-      data.key?(:output) ? data[:output] : nil
+      output
     end
 
     def escaped_cmd(cmd)
