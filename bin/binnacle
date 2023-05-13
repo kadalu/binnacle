@@ -1,15 +1,101 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-require "binnacle"
+require 'optparse'
 
-include Binnacle::Plugins
+require 'binnacle'
 
-files = ARGV
-files.each do |file|
-  # Reset all the custom configurations
-  # done in the previous tests
-  Binnacle::Store.reset
+EXIT_RESULT_PASS = 0
+EXIT_RESULT_FAIL = 1
+EXIT_INVALID_ARGS = 2
+EXIT_TEST_FILE_NOT_FOUND = 3
+EXIT_NO_TESTS = 4
+EXIT_FAILED_TO_EXECUTE = 5
 
-  # Run the tests
-  Binnacle.run(file)
+# Set STDOUT and STDERR sync=true
+$stdout.sync = true
+$stderr.sync = true
+
+Options = Struct.new(:verbose, :task_files, :runner, :dry_run, :result_json)
+
+# rubocop:disable Metrics/AbcSize
+# rubocop:disable Metrics/MethodLength
+def parsed_args
+  args = Options.new('binnacle - Simple Test and Infra automation Framework')
+  args.verbose = 0
+  args.runner = false
+  args.result_json = ''
+
+  opt_parser = OptionParser.new do |opts|
+    opts.banner = 'Usage: binnacle [options] <testfile>'
+
+    opts.on('-v', '--verbose', 'Verbose output') { args.verbose += 1 }
+    opts.on('-r', '--runner', 'Run the tasks from a file (Internal use only)') { args.runner = true }
+    opts.on('--results-json=FILE', 'Results JSON file') do |json_file|
+      args.result_json = json_file
+    end
+
+    opts.on('-h', '--help', 'Prints this help') do
+      puts opts
+      exit
+    end
+
+    opts.on('--version', 'Show Version information') do
+      puts "Binnacle #{Binnacle::VERSION}"
+      exit
+    end
+  end
+
+  opt_parser.parse!(ARGV)
+
+  if ARGV.empty?
+    warn 'Task file is not specified'
+    exit EXIT_INVALID_ARGS
+  end
+
+  args.task_files = ARGV
+  args
+end
+# rubocop:enable Metrics/AbcSize
+# rubocop:enable Metrics/MethodLength
+
+args = parsed_args
+if args.runner
+  # Include all Binnacle keywords in global namespace
+  # to make it available/usable in the task files directly.
+  # rubocop:disable Style/MixinUsage
+  include Binnacle::Plugins
+  # rubocop:enable Style/MixinUsage
+
+  Binnacle.runner(args.task_files[0], debug: args.verbose > 1)
+else
+  task_files = []
+  metrics = {
+    files: [],
+    duration_seconds: 0,
+    passed: 0,
+    failed: 0,
+    passed_files: 0,
+    failed_files: 0
+  }
+
+  args.task_files.each do |tfile|
+    task_files.concat(Binnacle::Utils.task_files_from_path(tfile))
+  end
+  puts "Task files #{task_files.join(', ')}" if args.verbose.positive?
+
+  if task_files.empty?
+    warn 'No task files provided'
+    exit EXIT_NO_TESTS
+  end
+
+  task_files.each do |tfile|
+    data = Binnacle.start(tfile, args)
+    metrics[:files] << data
+    metrics[:duration_seconds] += data[:duration_seconds]
+    metrics[:passed] += data[:passed]
+    metrics[:failed] += data[:failed]
+    metrics[:passed_files] += data[:ok] ? 1 : 0
+    metrics[:failed_files] += data[:ok] ? 0 : 1
+  end
 end

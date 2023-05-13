@@ -97,7 +97,35 @@ module Binnacle
     rescue StandardError => e
       yield nil, "Unknown Command (#{e})", -1
     end
-    # rubocop:enable Metrics/MethodLength
     # rubocop:enable Metrics/AbcSize
+
+    def task_files_from_path(task_file)
+      out_files = []
+      if File.directory?(task_file)
+        # If the input is directory then get the list
+        # of files from that directory and
+        # Sort the Task files in alphabetical order.
+        # Recursively looks for task files
+        files_list = Dir.glob("#{task_file}/*").sort
+        files_list.each do |tfile|
+          out_files.concat(task_files_from_path(tfile))
+        end
+      elsif task_file.end_with?('.tl')
+        # Tasks playlist, if a file contains the list of
+        # task files, then all the task file paths are collected
+        # If the list can contain dir path or task file or a playlist
+        File.readlines(task_file).each do |tfile|
+          out_files.concat(task_files_from_path(tfile))
+        end
+      elsif task_file.end_with?('.t')
+        # Just the task file
+        out_files << task_file
+      else
+        warn("Ignored parsing the Unknown file.  file=#{task_file}")
+      end
+
+      out_files
+    end
+    # rubocop:enable Metrics/MethodLength
   end
 end
