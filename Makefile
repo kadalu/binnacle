@@ -1,11 +1,25 @@
-BINNACLE_VERSION ?= devel
+BINNACLE_VERSION ?= 0.0.0
+BINNACLE_FILE ?= -
+VERBOSE ?= -vv
 
-build:
-	mkdir -p bin
-	echo "#!/usr/bin/env ruby" > ./bin/binnacle
-	echo "VERSION = \"${BINNACLE_VERSION}\"" >> ./bin/binnacle
-	cat src/runner.rb >> ./bin/binnacle
-	cat src/plugins.rb >> ./bin/binnacle
-	cat src/metrics.rb >> ./bin/binnacle
-	cat src/binnacle.rb >> ./bin/binnacle
-	chmod +x ./bin/binnacle
+gen-version:
+	@echo "# frozen_string_literal: true"      > lib/binnacle/version.rb
+	@echo                                     >> lib/binnacle/version.rb
+	@echo "module Binnacle"                   >> lib/binnacle/version.rb
+	@echo "  VERSION = '${BINNACLE_VERSION}'" >> lib/binnacle/version.rb
+	@echo "end"                               >> lib/binnacle/version.rb
+
+build: gen-version
+	gem build binnacle.gemspec
+
+run:
+	RUBYLIB=./lib ruby bin/binnacle ${BINNACLE_FILE} ${VERBOSE}
+
+publish: build
+	gem push binnacle-${BINNACLE_VERSION}.gem
+
+deps-install:
+	bundle install
+
+lint: gen-version deps-install
+	bundle exec rubocop

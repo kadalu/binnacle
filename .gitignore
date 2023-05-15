@@ -3,3 +3,5 @@ build
 dist
 .run
 *.gem
+lib/binnacle/version.rb
+vendor
