@@ -4,6 +4,7 @@
 require 'optparse'
 
 require 'binnacle'
+require 'binnacle/version'
 
 EXIT_RESULT_PASS = 0
 EXIT_RESULT_FAIL = 1
@@ -97,5 +98,11 @@ else
     metrics[:failed] += data[:failed]
     metrics[:passed_files] += data[:ok] ? 1 : 0
     metrics[:failed_files] += data[:ok] ? 0 : 1
+  end
+
+  if args.result_json != ''
+    File.open(args.result_json, 'w') do |json_file|
+      json_file.write(metrics.to_json)
+    end
   end
 end

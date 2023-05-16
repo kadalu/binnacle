@@ -78,7 +78,7 @@ module Binnacle
   # ```
   # run nil, "ls /non/existing"
   # ```
-  register_plugin 'run' do |*args, **kwargs|
+  register_plugin 'run' do |*args|
     expect_ret = 0
     cmd = args[0]
     if args.size > 1
@@ -88,7 +88,6 @@ module Binnacle
 
     data = {
       expect_ret: expect_ret,
-      task: "#{kwargs.fetch(:command, 'run')} \"#{cmd}\"",
       ok: true
     }
 
@@ -114,7 +113,7 @@ module Binnacle
   register_plugin 'RUN' do |cmd|
     data = {}
     Store.set(:response, 'return') do
-      data = Plugins.run(nil, cmd, command: 'RUN')
+      data = Plugins.run(nil, cmd)
     end
 
     data
@@ -140,7 +139,7 @@ module Binnacle
   register_plugin 'test' do |*args|
     data = {}
     Store.set(:response, 'return') do
-      data = Plugins.run(*args, command: 'test')
+      data = Plugins.run(*args)
     end
 
     data
@@ -149,7 +148,7 @@ module Binnacle
   register_plugin 'TEST' do |*args|
     data = {}
     Store.set(:response, 'return') do
-      data = Plugins.run(*args, command: 'TEST')
+      data = Plugins.run(*args)
     end
 
     data
@@ -159,7 +158,7 @@ module Binnacle
     data = {}
     Store.set(:response, 'return') do
       # TODO: If expect_value is multiline or a variable is given
-      data = Plugins.run(0, cmd, command: "expect #{expect_value},")
+      data = Plugins.run(0, cmd)
     end
 
     if data[:ok] && data[:output] != expect_value.to_s
