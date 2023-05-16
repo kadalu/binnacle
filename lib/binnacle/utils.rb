@@ -159,6 +159,17 @@ module Binnacle
       out_files
     end
     # rubocop:enable Metrics/MethodLength
+
+    def elapsed_time_humanize(value)
+      mins = (value / 60).to_i
+      return "#{mins}m" if mins >= 1
+      return "#{value.to_i}s" if value >= 1
+
+      ms = (value * 1000).to_i
+      return "#{ms}ms" if ms >= 1
+
+      "#{(value * 1_000_000).to_i}μs"
+    end
   end
   # rubocop:enable Metrics/ModuleLength
 end

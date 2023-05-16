@@ -51,7 +51,7 @@ module Binnacle
           ['total', metrics[:passed] + metrics[:failed]],
           ['passed', metrics[:passed]],
           ['failed', metrics[:failed]],
-          ['duration', metrics[:duration_seconds]]
+          ['duration', Utils.elapsed_time_humanize(metrics[:duration_seconds])]
         ]
       )
     end
@@ -64,7 +64,7 @@ module Binnacle
           (['container', data[:container]] if data.key?(:container)),
           (['ret', data[:ret]] if data.key?(:ret)),
           (['expect_ret', data[:expect_ret]] if data.key?(:expect_ret)),
-          ['duration', data[:duration_seconds]],
+          ['duration', Utils.elapsed_time_humanize(data[:duration_seconds])],
           ['line', data[:line]],
           ['', data[:task]]
         ]
