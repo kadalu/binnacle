@@ -43,32 +43,38 @@ module Binnacle
 
     # rubocop:disable Metrics/MethodLength
     def file_completed(task_file, metrics)
-      print_summary_line(
-        '# ####### COMPLETED',
-        [
-          ['', (metrics[:failed]).zero? ? 'ok    ' : 'not ok'],
-          ['file', task_file],
-          ['total', metrics[:passed] + metrics[:failed]],
-          ['passed', metrics[:passed]],
-          ['failed', metrics[:failed]],
-          ['duration', Utils.elapsed_time_humanize(metrics[:duration_seconds])]
-        ]
-      )
+      fields = [
+        ['', (metrics[:failed]).zero? ? 'ok    ' : 'not ok'],
+        ['file', task_file],
+        ['total', metrics[:passed] + metrics[:failed]]
+      ]
+      metrics.each do |key, value|
+        next if %i[duration_seconds tasks].include?(key)
+
+        fields << [key, value]
+      end
+      fields << [
+        'duration',
+        Utils.elapsed_time_humanize(metrics[:duration_seconds])
+      ]
+      print_summary_line('# ####### COMPLETED', fields)
     end
 
     def task_summary(data)
-      print_summary_line(
-        data[:ok] ? 'ok    ' : 'not ok',
+      fields = []
+      data.each do |key, value|
+        next if %i[task line duration_seconds].include?(key)
+
+        fields << [key, value.to_s]
+      end
+      fields.concat(
         [
-          (['node', data[:node]] if data.key?(:node)),
-          (['container', data[:container]] if data.key?(:container)),
-          (['ret', data[:ret]] if data.key?(:ret)),
-          (['expect_ret', data[:expect_ret]] if data.key?(:expect_ret)),
           ['duration', Utils.elapsed_time_humanize(data[:duration_seconds])],
-          ['line', data[:line]],
+          ['line', data[:line].to_s],
           ['', data[:task]]
         ]
       )
+      print_summary_line(data[:ok] ? 'ok    ' : 'not ok', fields)
     end
     # rubocop:enable Metrics/MethodLength
   end

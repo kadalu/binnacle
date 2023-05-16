@@ -12,6 +12,8 @@ module Binnacle
     # Store or to add new behaviour.
     # @example
     #   Binnacle::Plugin.register "use_node" do |node_name
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/MethodLength
     def register(name, &plugin_block)
       define_method(name) do |*args, **kwargs, &block|
         t1 = Time.now
@@ -26,10 +28,12 @@ module Binnacle
 
         Utils.task_and_line(data)
         Utils.node_or_container_label(data)
-
+        data[:task_number] = Store.inc(:count)
         Utils.response(data)
       end
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
   end
 
   def default_config(key, value)
