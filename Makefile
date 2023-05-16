@@ -10,13 +10,13 @@ gen-version:
 	@echo "end"                               >> lib/binnacle/version.rb
 
 build: gen-version
-	gem build binnacle.gemspec
+	gem build kadalu_binnacle.gemspec
 
 run:
 	RUBYLIB=./lib ruby bin/binnacle ${BINNACLE_FILE} ${VERBOSE}
 
 publish: build
-	gem push binnacle-${BINNACLE_VERSION}.gem
+	gem push kadalu_binnacle-${BINNACLE_VERSION}.gem
 
 deps-install:
 	bundle install
