@@ -22,6 +22,8 @@ module Binnacle
       s = StringIO.new
       s << bold(msg)
       data.each do |k, v|
+        next if v.nil?
+
         s << (k == '' ? " [#{v}]" : " #{bold(k)}=#{v}")
       end
 
@@ -53,18 +55,21 @@ module Binnacle
         ]
       )
     end
-    # rubocop:enable Metrics/MethodLength
 
     def task_summary(data)
       print_summary_line(
         data[:ok] ? 'ok    ' : 'not ok',
         [
-          ['node', data[:node]],
+          (['node', data[:node]] if data.key?(:node)),
+          (['container', data[:container]] if data.key?(:container)),
+          (['ret', data[:ret]] if data.key?(:ret)),
+          (['expect_ret', data[:expect_ret]] if data.key?(:expect_ret)),
           ['duration', data[:duration_seconds]],
           ['line', data[:line]],
           ['', data[:task]]
         ]
       )
     end
+    # rubocop:enable Metrics/MethodLength
   end
 end
