@@ -25,7 +25,7 @@ module Binnacle
         data[:duration_seconds] = Time.now - t1
 
         Utils.task_and_line(data)
-        data[:node] = Store.get(:node_name)
+        Utils.node_or_container_label(data)
 
         Utils.response(data)
       end

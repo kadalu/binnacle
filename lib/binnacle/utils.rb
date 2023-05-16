@@ -6,6 +6,7 @@ require 'open3'
 # Module with the collection of binnacle keywords
 # and helper utilities
 module Binnacle
+  # rubocop:disable Metrics/ModuleLength
   module Utils
     module_function
 
@@ -13,6 +14,14 @@ module Binnacle
 
     # Cache of opened files to get the text by line number
     @files = {}
+
+    def node_or_container_label(data)
+      if Store.get(:use_remote_plugin) == 'ssh'
+        data[:node] = Store.get(:node_name)
+      elsif Store.get(:use_remote_plugin) == 'docker'
+        data[:container] = Store.get(:node_name)
+      end
+    end
 
     def task_and_line(data)
       filename, line_num = Utils.caller_line_number(2)
@@ -151,4 +160,5 @@ module Binnacle
     end
     # rubocop:enable Metrics/MethodLength
   end
+  # rubocop:enable Metrics/ModuleLength
 end
