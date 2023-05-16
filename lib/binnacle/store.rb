@@ -36,6 +36,12 @@ module Binnacle
       nil
     end
 
+    def self.inc(name)
+      @data[name] = 0 unless @data.key?(name)
+      @data[name] += 1
+      @data[name]
+    end
+
     # Get the value from the Store for a given key
     def self.get(name)
       value = nil

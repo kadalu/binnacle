@@ -5,6 +5,7 @@ require 'open3'
 require 'binnacle/store'
 require 'binnacle/plugins'
 require 'binnacle/plugins/commands'
+require 'binnacle/plugins/compare'
 require 'binnacle/messages'
 
 module Binnacle
