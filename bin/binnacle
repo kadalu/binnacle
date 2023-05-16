@@ -61,49 +61,51 @@ end
 # rubocop:enable Metrics/AbcSize
 # rubocop:enable Metrics/MethodLength
 
-args = parsed_args
-if args.runner
-  # Include all Binnacle keywords in global namespace
-  # to make it available/usable in the task files directly.
-  # rubocop:disable Style/MixinUsage
-  include Binnacle::Plugins
-  # rubocop:enable Style/MixinUsage
+begin
+  args = parsed_args
+  if args.runner
+    # Include all Binnacle keywords in global namespace
+    # to make it available/usable in the task files directly.
+    include Binnacle::Plugins
+    Binnacle.runner(args.task_files[0], args)
+  else
+    task_files = []
+    metrics = {
+      files: [],
+      duration_seconds: 0,
+      passed: 0,
+      failed: 0,
+      passed_files: 0,
+      failed_files: 0
+    }
 
-  Binnacle.runner(args.task_files[0], args)
-else
-  task_files = []
-  metrics = {
-    files: [],
-    duration_seconds: 0,
-    passed: 0,
-    failed: 0,
-    passed_files: 0,
-    failed_files: 0
-  }
+    args.task_files.each do |tfile|
+      task_files.concat(Binnacle::Utils.task_files_from_path(tfile))
+    end
+    puts "Task files #{task_files.join(', ')}" if args.verbose.positive?
 
-  args.task_files.each do |tfile|
-    task_files.concat(Binnacle::Utils.task_files_from_path(tfile))
-  end
-  puts "Task files #{task_files.join(', ')}" if args.verbose.positive?
+    if task_files.empty?
+      warn 'No task files provided'
+      exit EXIT_NO_TESTS
+    end
 
-  if task_files.empty?
-    warn 'No task files provided'
-    exit EXIT_NO_TESTS
-  end
+    task_files.each do |tfile|
+      data = Binnacle.start(tfile, args)
+      metrics[:files] << data
+      metrics[:duration_seconds] += data[:duration_seconds]
+      metrics[:passed] += data[:passed]
+      metrics[:failed] += data[:failed]
+      metrics[:passed_files] += data[:ok] ? 1 : 0
+      metrics[:failed_files] += data[:ok] ? 0 : 1
+    end
 
-  task_files.each do |tfile|
-    data = Binnacle.start(tfile, args)
-    metrics[:files] << data
-    metrics[:duration_seconds] += data[:duration_seconds]
-    metrics[:passed] += data[:passed]
-    metrics[:failed] += data[:failed]
-    metrics[:passed_files] += data[:ok] ? 1 : 0
-    metrics[:failed_files] += data[:ok] ? 0 : 1
-  end
-
-  if args.result_json != ''
-    File.open(args.result_json, 'w') do |json_file|
-      json_file.write(metrics.to_json)
+    if args.result_json != ''
+      File.open(args.result_json, 'w') do |json_file|
+        json_file.write(metrics.to_json)
+      end
     end
   end
+rescue Interrupt
+  warn 'Exiting..'
+  exit 1
 end
