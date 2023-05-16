@@ -21,8 +21,10 @@ module Binnacle
         # If the plugin is just setting the store key
         return nil if data.nil? || !data.key?(:ok)
 
+        data[:name] = name
         data[:duration_seconds] = Time.now - t1
-        data[:line] = Utils.caller_line_number
+
+        Utils.task_and_line(data)
         data[:node] = Store.get(:node_name)
 
         Utils.response(data)

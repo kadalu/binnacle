@@ -9,9 +9,29 @@ module Binnacle
   module Utils
     module_function
 
-    def caller_line_number
-      loc = caller_locations[1]
-      "#{loc.path}:#{loc.lineno}"
+    # Cache of opened files to get the text by line number
+    @files = {}
+
+    def task_and_line(data)
+      filename, line_num = Utils.caller_line_number(2)
+      data[:line] = "#{filename}:#{line_num}"
+      line_content = Utils.content_by_line_number(filename, line_num)
+      data[:task] = if Store.get(:wide)
+                      line_content
+                    else
+                      line_content[0...50] + (line_content.size > 50 ? '...' : '')
+                    end
+    end
+
+    def content_by_line_number(filepath, line)
+      @files[filepath] = File.readlines(filepath) unless @files.key?(filepath)
+
+      @files[filepath][line - 1].strip
+    end
+
+    def caller_line_number(idx = 1)
+      loc = caller_locations[idx]
+      [loc.path, loc.lineno]
     end
 
     def print_output(data, flag)

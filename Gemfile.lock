@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    binnacle (0.7.0)
+    kadalu_binnacle (0.7.0)
 
 GEM
   remote: http://rubygems.org/
@@ -31,7 +31,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  binnacle!
+  kadalu_binnacle!
   rubocop (~> 0.60)
 
 BUNDLED WITH
