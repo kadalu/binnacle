@@ -25,7 +25,8 @@ module Binnacle
     Messages.file_started(task_file)
 
     cmd_verbose_opts = ((0...opts.verbose).map { |_o| '-v' }).join(' ')
-    cmd = "#{$PROGRAM_NAME} #{task_file} --runner #{cmd_verbose_opts}"
+    wide_opts = opts.wide ? '-w' : ''
+    cmd = "#{$PROGRAM_NAME} #{task_file} --runner #{cmd_verbose_opts} #{wide_opts}"
 
     metrics = {
       passed: 0,
@@ -69,9 +70,10 @@ module Binnacle
   # rubocop: enable Metrics/MethodLength
   # rubocop: enable Metrics/PerceivedComplexity
 
-  def runner(task_file, debug: false)
+  def runner(task_file, args)
     puts ENV.fetch('RUBYLIB', '--')
-    Store.set(:debug, debug)
+    Store.set(:debug, args.verbose == 2)
+    Store.set(:wide, args.wide)
 
     full_path = File.expand_path(task_file)
 

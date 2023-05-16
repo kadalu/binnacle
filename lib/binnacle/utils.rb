@@ -9,6 +9,8 @@ module Binnacle
   module Utils
     module_function
 
+    LINE_WIDTH = 50
+
     # Cache of opened files to get the text by line number
     @files = {}
 
@@ -16,10 +18,11 @@ module Binnacle
       filename, line_num = Utils.caller_line_number(2)
       data[:line] = "#{filename}:#{line_num}"
       line_content = Utils.content_by_line_number(filename, line_num)
+      sfx = line_content.size > LINE_WIDTH ? '...' : ''
       data[:task] = if Store.get(:wide)
                       line_content
                     else
-                      line_content[0...50] + (line_content.size > 50 ? '...' : '')
+                      line_content[0...LINE_WIDTH] + sfx
                     end
     end
 

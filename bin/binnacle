@@ -17,7 +17,7 @@ EXIT_FAILED_TO_EXECUTE = 5
 $stdout.sync = true
 $stderr.sync = true
 
-Options = Struct.new(:verbose, :task_files, :runner, :dry_run, :result_json)
+Options = Struct.new(:verbose, :task_files, :runner, :dry_run, :result_json, :wide)
 
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/MethodLength
@@ -30,6 +30,7 @@ def parsed_args
   opt_parser = OptionParser.new do |opts|
     opts.banner = 'Usage: binnacle [options] <testfile>'
 
+    opts.on('-w', '--wide', 'Do not crop the task line') { args.wide = true }
     opts.on('-v', '--verbose', 'Verbose output') { args.verbose += 1 }
     opts.on('-r', '--runner', 'Run the tasks from a file (Internal use only)') { args.runner = true }
     opts.on('--results-json=FILE', 'Results JSON file') do |json_file|
@@ -68,7 +69,7 @@ if args.runner
   include Binnacle::Plugins
   # rubocop:enable Style/MixinUsage
 
-  Binnacle.runner(args.task_files[0], debug: args.verbose > 1)
+  Binnacle.runner(args.task_files[0], args)
 else
   task_files = []
   metrics = {
