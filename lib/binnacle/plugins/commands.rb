@@ -147,13 +147,13 @@ module Binnacle
       cmd = args[1]
     end
 
-    data = {
-      expect_ret: expect_ret,
-      ok: true
-    }
+    data = { expect_ret: expect_ret, ok: true }
 
     out = []
-    Utils.execute(cmd) do |stdout_line, stderr_line, ret|
+    fcmd = Utils.full_cmd(cmd)
+    puts "Executing #{fcmd}" if cmd != fcmd
+
+    Utils.execute(fcmd) do |stdout_line, stderr_line, ret|
       unless stdout_line.nil?
         out << stdout_line
         puts "# #{stdout_line}" if Store.get(:debug)
