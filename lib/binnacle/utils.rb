@@ -81,7 +81,7 @@ module Binnacle
 
     def escaped_ssh_cmd(cmd)
       cmd = "/bin/bash -c '#{escaped_cmd(cmd)}'"
-      cmd = @@ssh_sudo ? "sudo #{cmd}" : cmd
+      cmd = Store.get(:sudo) ? "sudo #{cmd}" : cmd
 
       escaped_cmd(cmd)
     end
