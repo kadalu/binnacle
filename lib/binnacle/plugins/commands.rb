@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module Binnacle
   # Two ways to set the remote plugin
   # Using as Block
@@ -25,7 +26,7 @@ module Binnacle
     Store.set(:remote_plugin, plugin, &block)
   end
 
-  default_config(:remote_plugin, 'local')
+  default_config(:remote_plugin, 'ssh')
 
   # Two ways to set the node
   # Using as Block
@@ -60,6 +61,66 @@ module Binnacle
   register_plugin 'enable_debug' do |value: true, &block|
     Store.set(:debug, value, &block)
   end
+
+  # For backward compatibility
+  register_plugin 'EMIT_STDOUT' do |value: true, &block|
+    Store.set(:debug, value, &block)
+  end
+
+  register_plugin 'exit_on_not_ok' do |value: true, &block|
+    Store.set(:exit_on_not_ok, value, &block)
+  end
+
+  # For backward compatibility
+  register_plugin 'EXIT_ON_NOT_OK' do |value: true, &block|
+    Store.set(:exit_on_not_ok, value, &block)
+  end
+
+  default_config(:exit_on_not_ok, false)
+
+  register_plugin 'use_sudo' do |value: true, &block|
+    Store.set(:sudo, value, &block)
+  end
+
+  default_config(:sudo, false)
+
+  # For backward compatibility
+  register_plugin 'USE_SSH_SUDO' do |value: true, &block|
+    Store.set(:sudo, value, &block)
+  end
+
+  register_plugin 'use_ssh_user' do |value, &block|
+    Store.set(:ssh_user, value, &block)
+  end
+
+  default_config(:ssh_user, 'root')
+
+  # For backward compatibility
+  register_plugin 'USE_SSH_USER' do |value, &block|
+    Store.set(:ssh_user, value, &block)
+  end
+
+  register_plugin 'use_ssh_pem_file' do |value, &block|
+    Store.set(:ssh_pem_file, value, &block)
+  end
+
+  # For backward compatibility
+  register_plugin 'USE_SSH_PEM_FILE' do |value, &block|
+    Store.set(:ssh_pem_file, value, &block)
+  end
+
+  default_config(:ssh_pem_file, '~/.ssh/id_rsa')
+
+  register_plugin 'use_ssh_port' do |value, &block|
+    Store.set(:ssh_port, value, &block)
+  end
+
+  # For backward compatibility
+  register_plugin 'USE_SSH_PORT' do |value, &block|
+    Store.set(:ssh_port, value, &block)
+  end
+
+  default_config(:ssh_port, 22)
 
   # Test any command for its return code
   #
@@ -187,3 +248,4 @@ module Binnacle
     data
   end
 end
+# rubocop:enable Metrics/ModuleLength
