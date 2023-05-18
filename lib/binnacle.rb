@@ -30,10 +30,12 @@ module Binnacle
     cmd = "#{$PROGRAM_NAME} #{task_file} --runner #{cmd_verbose_opts} #{wide_opts}"
 
     metrics = {
+      file: task_file,
       passed: 0,
       failed: 0,
       tasks: [],
-      duration_seconds: 0
+      duration_seconds: 0,
+      completed: true
     }
 
     env = { 'RUBYLIB' => ENV.fetch('RUBYLIB', '') }
@@ -59,7 +61,10 @@ module Binnacle
 
       status = wait_thr.value
 
-      warn '# Failed to execute' if !status.success? && opts.verbose.positive?
+      unless status.success?
+        warn '# Failed to execute'
+        metrics[:completed] = false
+      end
     end
 
     metrics[:duration_seconds] = Time.now - t1
@@ -72,7 +77,6 @@ module Binnacle
   # rubocop: enable Metrics/PerceivedComplexity
 
   def runner(task_file, args)
-    puts ENV.fetch('RUBYLIB', '--')
     Store.set(:debug, args.verbose == 2)
     Store.set(:wide, args.wide)
 
