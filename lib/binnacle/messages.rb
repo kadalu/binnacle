@@ -42,11 +42,18 @@ module Binnacle
     end
 
     # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/AbcSize
     def file_completed(task_file, metrics)
+      total = metrics[:passed] + metrics[:failed]
+      speed_tpm = total * 60 / metrics[:duration_seconds]
+
+      total = '-' unless metrics[:completed]
+
       fields = [
-        ['', (metrics[:failed]).zero? ? 'ok    ' : 'not ok'],
+        ['', (metrics[:failed]).zero? && metrics[:completed] ? 'ok    ' : 'not ok'],
         ['file', task_file],
-        ['total', metrics[:passed] + metrics[:failed]]
+        ['total', total],
+        ['speed_tpm', speed_tpm.to_i]
       ]
       metrics.each do |key, value|
         next if %i[duration_seconds tasks].include?(key)
@@ -76,6 +83,35 @@ module Binnacle
       )
       print_summary_line(data[:ok] ? 'ok    ' : 'not ok', fields)
     end
+
+    def fileset_completed(metrics)
+      total = metrics[:passed] + metrics[:failed]
+      speed_tpm = total * 60 / metrics[:duration_seconds]
+      puts
+      puts 'STATUS  TOTAL  PASSED  FAILED  DURATION  SPEED(TPM)  FILE'
+      puts '=================================================================='
+      metrics[:files].each do |data|
+        print_data = {
+          file_total: data[:completed] ? data[:passed] + data[:failed] : '-',
+          ok_msg: data[:ok] && data[:completed] ? 'OK    ' : 'NOT OK',
+          passed: data[:passed],
+          failed: data[:failed],
+          duration: Utils.elapsed_time_humanize(data[:duration_seconds]),
+          speed_tpm: speed_tpm.to_i,
+          file: data[:file]
+        }
+        puts format(
+          '%<ok_msg>s  %<file_total>5s  %<passed>6d  ' \
+          '%<failed>6d  %<duration>8s  %<speed_tpm>10s  %<file>s',
+          **print_data
+        )
+      end
+      puts
+      puts("Test Files: Total=#{metrics[:passed_files] + metrics[:failed_files]}  " \
+           "Passed=#{metrics[:passed_files]}  " \
+           "Failed=#{metrics[:failed_files]}")
+    end
     # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/AbcSize
   end
 end
