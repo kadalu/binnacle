@@ -3,6 +3,7 @@
 require 'stringio'
 
 module Binnacle
+  # rubocop:disable Metrics/ModuleLength
   module Messages
     module_function
 
@@ -67,7 +68,7 @@ module Binnacle
       print_summary_line('# ####### COMPLETED', fields)
     end
 
-    def task_summary(data)
+    def task_summary(data, pfx = '')
       fields = []
       data.each do |key, value|
         next if %i[task line duration_seconds].include?(key)
@@ -81,7 +82,24 @@ module Binnacle
           ['', data[:task]]
         ]
       )
-      print_summary_line(data[:ok] ? 'ok    ' : 'not ok', fields)
+      print_summary_line(pfx + (data[:ok] ? 'ok    ' : 'not ok'), fields)
+    end
+
+    def list_failed_tasks(metrics)
+      return if (metrics[:failed_files]).zero?
+
+      puts
+      warn bold('# Failed tasks:')
+      metrics[:files].each do |data|
+        next if data[:ok]
+
+        warn "#   #{data[:file]}"
+        data[:tasks].each do |task|
+          next if task[:ok]
+
+          task_summary(task, '#   ')
+        end
+      end
     end
 
     def fileset_completed(metrics)
@@ -114,4 +132,5 @@ module Binnacle
     # rubocop:enable Metrics/MethodLength
     # rubocop:enable Metrics/AbcSize
   end
+  # rubocop:enable Metrics/ModuleLength
 end

@@ -99,6 +99,7 @@ begin
       metrics[:failed_files] += data[:ok] ? 0 : 1
     end
 
+    Binnacle::Messages.list_failed_tasks(metrics)
     Binnacle::Messages.fileset_completed(metrics)
 
     if args.result_json != ''

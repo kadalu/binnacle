@@ -43,4 +43,6 @@ module Binnacle
   def register_plugin(name, &plugin_block)
     Plugins.register(name, &plugin_block)
   end
+
+  default_config(:response, 'stdout')
 end
