@@ -39,11 +39,12 @@ module Binnacle
     }
 
     env = { 'RUBYLIB' => ENV.fetch('RUBYLIB', '') }
-    Open3.popen2e(env, cmd) do |_stdin, stdout_and_stderr, wait_thr|
-      stdout_and_stderr.each do |line|
+    error_msgs = []
+    Utils.execute(env, cmd) do |stdout_line, stderr_line, ret|
+      unless stdout_line.nil?
         # Only print the Test case Summary line
-        if line.start_with?('{')
-          data = JSON.parse(line, { symbolize_names: true })
+        if stdout_line.start_with?('{')
+          data = JSON.parse(stdout_line, { symbolize_names: true })
           metrics[:tasks] << data
           Messages.task_summary(data)
           if data[:ok]
@@ -56,14 +57,23 @@ module Binnacle
         end
 
         # Print output/error only in verbose mode
-        Messages.diagnostic(line) if opts.verbose.positive?
+        Messages.diagnostic(stdout_line) if opts.verbose.positive?
       end
 
-      status = wait_thr.value
+      unless stderr_line.nil?
+        error_msgs << stderr_line
+        Messages.diagnostic(stderr_line) if opts.verbose.positive?
+      end
 
-      unless status.success?
-        warn '# Failed to execute'
-        metrics[:completed] = false
+      unless ret.nil?
+        if ret != 0
+          warn "# Failed to execute #{task_file}"
+          # Print the error lines only if verbose is not given
+          # If verbose is given, then those stderr messages are
+          # already printed on the screen.
+          error_msgs.each { |line| Messages.diagnostic(line) } if opts.verbose.zero?
+          metrics[:completed] = false
+        end
       end
     end
 

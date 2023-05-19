@@ -108,8 +108,8 @@ module Binnacle
     # subprocesses-with-stdout-stderr-streams.html
     # rubocop:disable Metrics/MethodLength
     # rubocop:disable Metrics/AbcSize
-    def execute(cmd)
-      Open3.popen3(cmd) do |_stdin, stdout, stderr, thread|
+    def execute(*args)
+      Open3.popen3(*args) do |_stdin, stdout, stderr, thread|
         stdout_t = Thread.new do
           until (line = stdout.gets).nil?
             yield line, nil, nil
