@@ -36,6 +36,36 @@ module Kadalu::Binnacle
       nil
     end
 
+    def self.hash_add(hash_name, name, value, &block)
+      @data[hash_name] = Hash.new unless @data.has_key?(hash_name)
+
+      if block
+        prev_value = get(hash_name)
+        @data[hash_name][name] = value
+        block.call
+        @data[hash_name] = prev_value
+      else
+        @data[hash_name][name] = value
+      end
+
+      nil
+    end
+
+    def self.hash_remove(hash_name, name, &block)
+      @data[hash_name] = Hash.new unless @data.has_key?(hash_name)
+
+      if block
+        prev_value = get(hash_name)
+        @data[hash_name].delete(name) if @data[hash_name].has_key?(name)
+        block.call
+        @data[hash_name] = prev_value
+      else
+        @data[hash_name].delete(name) if @data[hash_name].has_key?(name)
+      end
+
+      nil
+    end
+    
     def self.inc(name)
       @data[name] = 0 unless @data.key?(name)
       @data[name] += 1

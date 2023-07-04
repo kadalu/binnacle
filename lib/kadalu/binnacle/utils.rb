@@ -91,6 +91,8 @@ module Kadalu::Binnacle
     def full_cmd(cmd)
       return cmd if Store.get(:node_name) == 'local'
 
+      puts cmd
+
       if Store.get(:remote_plugin) == 'ssh'
         "ssh #{Store.get(:ssh_user)}@#{Store.get(:node_name)} " \
         "-i #{Store.get(:ssh_pem_file)} -p #{Store.get(:ssh_port)} " \
