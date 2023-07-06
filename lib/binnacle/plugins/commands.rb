@@ -139,7 +139,7 @@ module Binnacle
   # ```
   # run nil, "ls /non/existing"
   # ```
-  register_plugin 'run' do |*args|
+  register_plugin 'run' do |*args, **kwargs|
     expect_ret = 0
     cmd = args[0]
     if args.size > 1
@@ -197,7 +197,7 @@ module Binnacle
   # ```
   # test nil, "ls /non/existing"
   # ```
-  register_plugin 'test' do |*args|
+  register_plugin 'test' do |*args, **kwargs|
     data = {}
     Store.set(:response, 'return') do
       data = Plugins.run(*args)
@@ -206,7 +206,7 @@ module Binnacle
     data
   end
 
-  register_plugin 'TEST' do |*args|
+  register_plugin 'TEST' do |*args, **kwargs|
     data = {}
     Store.set(:response, 'return') do
       data = Plugins.run(*args)

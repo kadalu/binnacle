@@ -12,7 +12,8 @@ module Binnacle
     end
 
     def dim(txt)
-      "\033[2m#{txt}\033[0m"
+      # TODO: Make dim text
+      txt
     end
 
     def diagnostic(msg)
