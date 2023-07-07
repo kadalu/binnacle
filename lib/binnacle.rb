@@ -30,6 +30,7 @@ module Binnacle
     cmd = "#{$PROGRAM_NAME} #{task_file} --runner #{cmd_verbose_opts} #{wide_opts}"
 
     metrics = {
+      ok: true,
       file: task_file,
       passed: 0,
       failed: 0,
@@ -73,9 +74,12 @@ module Binnacle
           # already printed on the screen.
           error_msgs.each { |line| Messages.diagnostic(line) } if opts.verbose.zero?
           metrics[:completed] = false
+          metrics[:ok] = false
         end
       end
     end
+
+    metrics[:ok] = false if metrics[:failed] > 0
 
     metrics[:duration_seconds] = Time.now - t1
     Messages.file_completed(task_file, metrics)
