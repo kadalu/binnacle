@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'binnacle/utils'
+require 'kadalu/binnacle/utils'
 
-module Binnacle
+module Kadalu::Binnacle
   module_function
 
   module Plugins

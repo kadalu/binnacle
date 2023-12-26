@@ -3,20 +3,20 @@ BINNACLE_FILE ?= -
 VERBOSE ?= -vv
 
 gen-version:
-	@echo "# frozen_string_literal: true"      > lib/binnacle/version.rb
-	@echo                                     >> lib/binnacle/version.rb
-	@echo "module Binnacle"                   >> lib/binnacle/version.rb
-	@echo "  VERSION = '${BINNACLE_VERSION}'" >> lib/binnacle/version.rb
-	@echo "end"                               >> lib/binnacle/version.rb
+	@echo "# frozen_string_literal: true"      > lib/kadalu/binnacle/version.rb
+	@echo					  >> lib/kadalu/binnacle/version.rb
+	@echo "module Kadalu::Binnacle"			  >> lib/kadalu/binnacle/version.rb
+	@echo "	 VERSION = '${BINNACLE_VERSION}'" >> lib/kadalu/binnacle/version.rb
+	@echo "end"				  >> lib/kadalu/binnacle/version.rb
 
 build: gen-version
-	gem build kadalu_binnacle.gemspec
+	gem build kadalu-binnacle.gemspec
 
 run:
 	RUBYLIB=./lib ruby bin/binnacle ${BINNACLE_FILE} ${VERBOSE}
 
 publish: build
-	gem push kadalu_binnacle-${BINNACLE_VERSION}.gem
+	gem push kadalu-binnacle-${BINNACLE_VERSION}.gem
 
 deps-install:
 	bundle install
