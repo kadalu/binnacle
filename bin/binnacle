@@ -43,7 +43,7 @@ def parsed_args
     end
 
     opts.on('--version', 'Show Version information') do
-      puts "Binnacle #{Binnacle::VERSION}"
+      puts "Binnacle #{Kadalu::Binnacle::VERSION}"
       exit
     end
   end
