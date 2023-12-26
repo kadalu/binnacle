@@ -2,7 +2,7 @@
 
 require 'stringio'
 
-module Binnacle
+module Kadalu::Binnacle
   # rubocop:disable Metrics/ModuleLength
   module Messages
     module_function

@@ -3,5 +3,5 @@ build
 dist
 .run
 *.gem
-lib/binnacle/version.rb
+lib/kadalu/binnacle/version.rb
 vendor

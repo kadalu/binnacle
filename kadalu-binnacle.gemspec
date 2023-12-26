@@ -1,14 +1,15 @@
 # rubocop:disable Gemspec/RequiredRubyVersion
 # frozen_string_literal: true
 
-require_relative 'lib/binnacle/version'
+require_relative 'lib/kadalu/kadalu'
+require_relative 'lib/kadalu/binnacle/version'
 
 Gem::Specification.new do |spec|
-  spec.name        = 'kadalu_binnacle'
-  spec.version     = Binnacle::VERSION
+  spec.name        = 'kadalu-binnacle'
+  spec.version     = Kadalu::Binnacle::VERSION
   spec.summary     = 'Automate tests & infra with the simple imperative code'
-  spec.description = 'Automate tests & infra with the simple imperative code'
-  spec.authors     = ['Aravinda Vishwanathapura']
+  spec.description = 'Easy to use syntax allows you to get started in minutes'
+  spec.authors     = ['Aravinda VK']
   spec.email       = 'aravinda@kadalu.tech'
   spec.files       = Dir['lib/**/*', 'LICENSE', 'README.md']
   spec.homepage    = 'https://github.com/kadalu/binnacle'

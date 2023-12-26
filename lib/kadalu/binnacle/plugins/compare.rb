@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Binnacle
+module Kadalu::Binnacle
   # Validate if the given two values are equal
   #
   # ```
@@ -38,7 +38,7 @@ module Binnacle
   register_plugin 'EQUAL' do |value1, value2, title = ''|
     data = {}
     Store.set(:response, 'return') do
-      data = Plugins.equal(value1, value2, title)
+      data = Plugins.equal?(value1, value2, title)
     end
 
     data
@@ -76,7 +76,7 @@ module Binnacle
   register_plugin 'NOT_EQUAL' do |value1, value2, title = ''|
     data = {}
     Store.set(:response, 'return') do
-      data = Plugins.not_equal(value1, value2, title)
+      data = Plugins.not_equal?(value1, value2, title)
     end
 
     data
@@ -98,7 +98,7 @@ module Binnacle
   register_plugin 'TRUE' do |expr, title = ''|
     data = {}
     Store.set(:response, 'return') do
-      data = Plugins.true(expr, title)
+      data = Plugins.true?(expr, title)
     end
 
     data

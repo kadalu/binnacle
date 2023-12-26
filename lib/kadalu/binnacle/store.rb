@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Binnacle
+module Kadalu::Binnacle
   # Global config store for Binnacle keywords
   class Store
     @data = {}

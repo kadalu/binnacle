@@ -3,7 +3,7 @@
 ## Install
 
 ```
-gem install kadalu_binnacle
+gem install kadalu-binnacle
 ```
 
 ## Usage

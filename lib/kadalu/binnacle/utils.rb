@@ -5,7 +5,7 @@ require 'open3'
 
 # Module with the collection of binnacle keywords
 # and helper utilities
-module Binnacle
+module Kadalu::Binnacle
   # rubocop:disable Metrics/ModuleLength
   module Utils
     module_function

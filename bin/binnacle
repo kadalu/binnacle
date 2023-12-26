@@ -3,8 +3,8 @@
 
 require 'optparse'
 
-require 'binnacle'
-require 'binnacle/version'
+require 'kadalu/binnacle'
+require 'kadalu/binnacle/version'
 
 EXIT_RESULT_PASS = 0
 EXIT_RESULT_FAIL = 1
@@ -66,8 +66,8 @@ begin
   if args.runner
     # Include all Binnacle keywords in global namespace
     # to make it available/usable in the task files directly.
-    include Binnacle::Plugins
-    Binnacle.runner(args.task_files[0], args)
+    include Kadalu::Binnacle::Plugins
+    Kadalu::Binnacle.runner(args.task_files[0], args)
   else
     task_files = []
     metrics = {
@@ -80,7 +80,7 @@ begin
     }
 
     args.task_files.each do |tfile|
-      task_files.concat(Binnacle::Utils.task_files_from_path(tfile))
+      task_files.concat(Kadalu::Binnacle::Utils.task_files_from_path(tfile))
     end
     puts "Task files #{task_files.join(', ')}" if args.verbose.positive?
 
@@ -90,7 +90,7 @@ begin
     end
 
     task_files.each do |tfile|
-      data = Binnacle.start(tfile, args)
+      data = Kadalu::Binnacle.start(tfile, args)
       metrics[:files] << data
       metrics[:duration_seconds] += data[:duration_seconds]
       metrics[:passed] += data[:passed]
@@ -99,8 +99,8 @@ begin
       metrics[:failed_files] += data[:ok] ? 0 : 1
     end
 
-    Binnacle::Messages.list_failed_tasks(metrics)
-    Binnacle::Messages.fileset_completed(metrics)
+    Kadalu::Binnacle::Messages.list_failed_tasks(metrics)
+    Kadalu::Binnacle::Messages.fileset_completed(metrics)
 
     if args.result_json != ''
       File.open(args.result_json, 'w') do |json_file|

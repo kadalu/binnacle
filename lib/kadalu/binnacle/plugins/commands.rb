@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # rubocop:disable Metrics/ModuleLength
-module Binnacle
+module Kadalu::Binnacle
   # Two ways to set the remote plugin
   # Using as Block
   #

@@ -1,0 +1,2 @@
+module Kadalu
+end

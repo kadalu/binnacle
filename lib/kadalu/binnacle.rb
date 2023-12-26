@@ -2,13 +2,14 @@
 
 require 'open3'
 
-require 'binnacle/store'
-require 'binnacle/plugins'
-require 'binnacle/plugins/commands'
-require 'binnacle/plugins/compare'
-require 'binnacle/messages'
+require 'kadalu/kadalu'
+require 'kadalu/binnacle/store'
+require 'kadalu/binnacle/plugins'
+require 'kadalu/binnacle/plugins/commands'
+require 'kadalu/binnacle/plugins/compare'
+require 'kadalu/binnacle/messages'
 
-module Binnacle
+module Kadalu::Binnacle
   module_function
 
   # Runs the given task file as a child process.
