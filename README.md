@@ -8,6 +8,12 @@ gem install kadalu-binnacle
 
 ## Usage
 
+Check the version
+
+```
+binnacle --version
+```
+
 ```
 binnacle <task-file|task_files_list> [options]
 ```

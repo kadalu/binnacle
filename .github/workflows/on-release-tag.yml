@@ -11,26 +11,17 @@ env:
 
 jobs:
   publish-artifacts:
-    name: Publish binnacle file
+    name: Publish kadalu-binnacle
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Generate Single file
+    - name: Generate the Version
       run: |
-          BINNACLE_VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,') make build
-    - name: Upload binnacle to the release
-      uses: svenstaro/upload-release-action@v2
+        BINNACLE_VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,') make gen-version
+    - name: Publish gem
+      uses: dawidd6/action-publish-gem@v1
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: bin/binnacle
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
-    - name: Upload install.sh to the release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: extra/install.sh
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
+        # Optional, will publish to RubyGems if specified
+        api_key: ${{secrets.RUBYGEMS_API_KEY}}
+        # Optional, will publish to GitHub Packages if specified
+        github_token: ${{secrets.GITHUB_TOKEN}}
