@@ -1,8 +1,14 @@
-require 'binnacle/plugins/http'
+http_base_url "http://localhost:3000"
 
-use_base_url "https://aravindavk.in"
+puts http_get "/"
 
-puts get "/"
-post "/"
-put "/"
-del "/"
+http_response_type "json" do
+  resp = http_post "/", form: {"name" => "AAA", "value" => "Sumne"}, status: 201
+  puts resp
+end
+
+resp = http_post "/data", multipart: {"name" => "AAA", "file" => "@tests/rest_apis.t"}, status: 201
+puts resp
+
+# put "/"
+# del "/"
