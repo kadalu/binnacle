@@ -165,11 +165,19 @@ module Kadalu
       json_data = kwargs.fetch(:json, nil)
       return if json_data.nil?
 
+      request['Content-Type'] = 'application/json'
       request.body = if json_data.is_a?(Hash)
                        json_data.to_json
                      else
                        json_data
                      end
+    end
+
+    def self.set_headers(request)
+      headers = Store.get(:request_headers)
+      headers.each do |key, value|
+        request[key] = value.to_s
+      end
     end
 
     def self.http_request(request_type, args, kwargs)
@@ -181,6 +189,9 @@ module Kadalu
                 when 'delete' then Net::HTTP::Delete.new(uri.request_uri)
                 else Net::HTTP::Get.new(uri.request_uri)
                 end
+
+      # Set user set headers
+      set_headers(request)
 
       # Form vars
       set_form_data(request, kwargs)

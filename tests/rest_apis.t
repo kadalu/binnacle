@@ -1,5 +1,6 @@
 http_base_url "http://localhost:3000"
 
+http_add_header "X-Message", "Hello World!"
 puts http_get "/"
 
 http_response_type "json" do
