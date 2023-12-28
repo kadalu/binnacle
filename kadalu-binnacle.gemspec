@@ -1,7 +1,6 @@
 # rubocop:disable Gemspec/RequiredRubyVersion
 # frozen_string_literal: true
 
-require_relative 'lib/kadalu/kadalu'
 require_relative 'lib/kadalu/binnacle/version'
 
 Gem::Specification.new do |spec|
