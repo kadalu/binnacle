@@ -26,6 +26,8 @@ module Kadalu
       Store.set(:base_url, URI.parse(value), &block)
     end
 
+    default_config(:base_url, URI.parse(""))
+
     # Two ways to set the Basic auth
     # Using as Block
     #
@@ -102,7 +104,9 @@ module Kadalu
 
     def self.get_http_from_url(url, kwargs)
       uri = Store.get(:base_url)
-      uri = URI.join(uri.to_s, url)
+
+      # If full URL is given in sub commands then use the same instead of using Base URL
+      uri = url.start_with?("http") ? URI.parse(url) : URI.join(uri.to_s, url)
 
       query = kwargs.fetch(:query, nil)
 
@@ -175,6 +179,8 @@ module Kadalu
 
     def self.set_headers(request)
       headers = Store.get(:request_headers)
+      return if headers.nil?
+
       headers.each do |key, value|
         request[key] = value.to_s
       end

@@ -3,48 +3,48 @@
 # rubocop:disable Metrics/ModuleLength
 module Kadalu
   module Binnacle
-    # Two ways to set the remote plugin
+    # Two ways to set the command_mode
     # Using as Block
     #
     # ```
-    # use_remote_plugin "docker" do
-    #   test "stat /var/www/html/index.html"
+    # command_mode "docker" do
+    #   command_test "stat /var/www/html/index.html"
     # end
     # ```
     #
     # or without block
     #
     # ```
-    # use_remote_plugin "docker"
-    # test "stat /var/www/html/index.html"
+    # command_mode "docker"
+    # command_test "stat /var/www/html/index.html"
     # ```
-    register_plugin 'use_remote_plugin' do |plugin, &block|
-      Store.set(:remote_plugin, plugin, &block)
+    register_plugin 'command_mode' do |plugin, &block|
+      Store.set(:command_mode, plugin, &block)
     end
 
     # For backward compatibility
     register_plugin 'USE_REMOTE_PLUGIN' do |plugin, &block|
-      Store.set(:remote_plugin, plugin, &block)
+      Store.set(:command_mode, plugin, &block)
     end
 
-    default_config(:remote_plugin, 'ssh')
+    default_config(:command_mode, 'local')
 
     # Two ways to set the node
     # Using as Block
     #
     # ```
-    # use_node "node1.example.com" do
-    #   test "stat /var/www/html/index.html"
+    # command_node "node1.example.com" do
+    #   command_test "stat /var/www/html/index.html"
     # end
     # ```
     #
     # or without block
     #
     # ```
-    # use_node "node1.example.com"
-    # test "stat /var/www/html/index.html"
+    # command_node "node1.example.com"
+    # command_test "stat /var/www/html/index.html"
     # ```
-    register_plugin 'use_node' do |value, &block|
+    register_plugin 'command_node' do |value, &block|
       Store.set(:node_name, value, &block)
     end
 
@@ -53,7 +53,7 @@ module Kadalu
       Store.set(:node_name, value, &block)
     end
 
-    register_plugin 'use_container' do |value, &block|
+    register_plugin 'command_container' do |value, &block|
       Store.set(:node_name, value, &block)
     end
 
@@ -79,7 +79,7 @@ module Kadalu
 
     default_config(:exit_on_not_ok, false)
 
-    register_plugin 'use_sudo' do |value: true, &block|
+    register_plugin 'command_sudo' do |value: true, &block|
       Store.set(:sudo, value, &block)
     end
 
@@ -90,7 +90,7 @@ module Kadalu
       Store.set(:sudo, value, &block)
     end
 
-    register_plugin 'use_ssh_user' do |value, &block|
+    register_plugin 'command_ssh_user' do |value, &block|
       Store.set(:ssh_user, value, &block)
     end
 
@@ -101,7 +101,7 @@ module Kadalu
       Store.set(:ssh_user, value, &block)
     end
 
-    register_plugin 'use_ssh_pem_file' do |value, &block|
+    register_plugin 'command_ssh_pem_file' do |value, &block|
       Store.set(:ssh_pem_file, value, &block)
     end
 
@@ -112,7 +112,7 @@ module Kadalu
 
     default_config(:ssh_pem_file, '~/.ssh/id_rsa')
 
-    register_plugin 'use_ssh_port' do |value, &block|
+    register_plugin 'command_ssh_port' do |value, &block|
       Store.set(:ssh_port, value, &block)
     end
 
@@ -126,21 +126,21 @@ module Kadalu
     # Test any command for its return code
     #
     # ```
-    # run "ls /etc/hosts"
+    # command_run "ls /etc/hosts"
     # ```
     #
     # or for any specific return code
     #
     # ```
-    # run 1, "ls /non/existing"
+    # command_run 1, "ls /non/existing"
     # ```
     #
     # To ignore errors, use `nil` return code
     #
     # ```
-    # run nil, "ls /non/existing"
+    # command_run nil, "ls /non/existing"
     # ```
-    register_plugin 'run' do |*args, **_kwargs|
+    register_plugin 'command_run' do |*args, **_kwargs|
       expect_ret = 0
       cmd = args[0]
       if args.size > 1
@@ -175,7 +175,7 @@ module Kadalu
     register_plugin 'RUN' do |cmd|
       data = {}
       Store.set(:response, 'return') do
-        data = Plugins.run(nil, cmd)
+        data = Plugins.command_run(nil, cmd)
       end
 
       data
@@ -184,24 +184,24 @@ module Kadalu
     # Test any command for its return code
     #
     # ```
-    # test "ls /etc/hosts"
+    # command_test "ls /etc/hosts"
     # ```
     #
     # or for any specific return code
     #
     # ```
-    # test 1, "ls /non/existing"
+    # command_test 1, "ls /non/existing"
     # ```
     #
     # To ignore errors, use `nil` return code
     #
     # ```
-    # test nil, "ls /non/existing"
+    # command_test nil, "ls /non/existing"
     # ```
-    register_plugin 'test' do |*args, **_kwargs|
+    register_plugin 'command_test' do |*args, **_kwargs|
       data = {}
       Store.set(:response, 'return') do
-        data = Plugins.run(*args)
+        data = Plugins.command_run(*args)
       end
 
       data
@@ -210,17 +210,17 @@ module Kadalu
     register_plugin 'TEST' do |*args, **_kwargs|
       data = {}
       Store.set(:response, 'return') do
-        data = Plugins.run(*args)
+        data = Plugins.command_run(*args)
       end
 
       data
     end
 
-    register_plugin 'expect' do |expect_value, cmd|
+    register_plugin 'command_expect' do |expect_value, cmd|
       data = {}
       Store.set(:response, 'return') do
         # TODO: If expect_value is multiline or a variable is given
-        data = Plugins.run(0, cmd)
+        data = Plugins.command_run(0, cmd)
       end
 
       if data[:ok] && data[:output] != expect_value.to_s
@@ -243,7 +243,7 @@ module Kadalu
     register_plugin 'EXPECT' do |expect_value, cmd|
       data = {}
       Store.set(:response, 'return') do
-        data = Plugins.expect(expect_value, cmd)
+        data = Plugins.command_expect(expect_value, cmd)
       end
 
       data
