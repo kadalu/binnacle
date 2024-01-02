@@ -17,9 +17,9 @@ module Kadalu
       @files = {}
 
       def node_or_container_label(data)
-        if Store.get(:use_remote_plugin) == 'ssh'
+        if Store.get(:command_mode) == 'ssh'
           data[:node] = Store.get(:node_name)
-        elsif Store.get(:use_remote_plugin) == 'docker'
+        elsif Store.get(:command_mode) == 'docker'
           data[:container] = Store.get(:node_name)
         end
       end
@@ -90,13 +90,13 @@ module Kadalu
       # If node is not local then add respective prefix
       # to ssh or docker exec
       def full_cmd(cmd)
-        return cmd if Store.get(:node_name) == 'local'
+        return cmd if Store.get(:command_mode) == 'local'
 
-        if Store.get(:remote_plugin) == 'ssh'
+        if Store.get(:command_mode) == 'ssh'
           "ssh #{Store.get(:ssh_user)}@#{Store.get(:node_name)} " \
           "-i #{Store.get(:ssh_pem_file)} -p #{Store.get(:ssh_port)} " \
           "'#{escaped_ssh_cmd(cmd)}'"
-        elsif Store.get(:remote_plugin) == 'docker'
+        elsif Store.get(:command_mode) == 'docker'
           "docker exec -i #{Store.get(:node_name)} /bin/bash -c '#{escaped_cmd(cmd)}'"
         else
           cmd

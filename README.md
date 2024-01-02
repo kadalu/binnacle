@@ -22,8 +22,8 @@ Run a single task file
 
 ```ruby
 # File: verify_report.t
-run "my-script ~/report.csv"
-run "stat ~/report.csv"
+command_run "my-script ~/report.csv"
+command_run "stat ~/report.csv"
 ```
 
 ```
@@ -72,107 +72,107 @@ binnacle -vv -w verify_report.t
 
 ## Syntax and Keywords
 
-### Run any command (`run` or `test`)
+### Run any command (`command_run` or `command_test`)
 
 ```ruby
-run "stat ~/report.csv"
+command_run "stat ~/report.csv"
 ```
 
 ```ruby
-test "stat ~/report.csv"
+command_test "stat ~/report.csv"
 ```
 
 To test a command that returns a specific error
 
 ```ruby
-test 1, "stat ~/non/existing/file"
+command_test 1, "stat ~/non/existing/file"
 ```
 
 Ignore errors and run any command
 
 ```ruby
-run nil, "docker stop app-dev"
-run nil, "docker rm app-dev"
+command_run nil, "docker stop app-dev"
+command_run nil, "docker rm app-dev"
 ```
 
 ### Run the command and validate the output
 
 ```ruby
-#      Expect value         Command
-expect "node1.example.com", "hostname"
+#              Expect value         Command
+command_expect "node1.example.com", "hostname"
 ```
 
 ### Run a command in a docker container
 
 ```ruby
-use_remote_plugin "docker"
-use_container "myapp"
+command_mode "docker"
+command_container "myapp"
 
-run "stat /var/www/html/index.html"
+command_run "stat /var/www/html/index.html"
 ```
 
 ### Run a command using SSH
 
 ```ruby
-use_remote_plugin "ssh"
-use_ssh_user "ubuntu"
-use_sudo true
-use_ssh_pem_file "~/.ssh/id_rsa"
+command_mode "ssh"
+command_ssh_user "ubuntu"
+command_sudo true
+command_ssh_pem_file "~/.ssh/id_rsa"
 
-use_node "node1.example.com"
-run "stat /var/www/html/index.html"
+command_node "node1.example.com"
+command_run "stat /var/www/html/index.html"
 ```
 
 ### Equal and Not Equal
 
 ```ruby
-equal var1, 100, "Test if var1 == 100"
-not_equal var1, 100, "Test if var1 != 100"
+compare_equal? var1, 100, "Test if var1 == 100"
+compare_not_equal? var1, 100, "Test if var1 != 100"
 ```
 
 ### True and False
 
 ```ruby
-true? var1 == 100, "Test if var1 == 100"
-false? var1 == 100, "Test if var1 != 100"
+compare_true? var1 == 100, "Test if var1 == 100"
+compare_false? var1 == 100, "Test if var1 != 100"
 ```
 
 ## Customization
 
-`use_node`, `use_remote_plugin` etc are used to adjust the behaviour of the plugins. These options can be used as global options or as block options. Block options helps to limit those settings only for that block.
+`command_node`, `command_mode` etc are used to adjust the behaviour of the plugins. These options can be used as global options or as block options. Block options helps to limit those settings only for that block.
 
 ```ruby
-use_node "server1"
-run "command 1"
+command_node "server1"
+command_run "command 1"
 
-use_node "server2"
-run "command 2"
+command_node "server2"
+command_run "command 2"
 
-use_node "server1"
-run "command 3"
+command_node "server1"
+command_run "command 3"
 ```
 
 ```ruby
-use_node "server1"
-run "command 1"
+command_node "server1"
+command_run "command 1"
 
-use_node "server2" do
-    run "command 2"
+command_node "server2" do
+    command_run "command 2"
 end
 
-run "command 3"
+command_run "command 3"
 ```
 
 Both examples above are same. The second one is easy since no need to remember the changed options after executing the command 2.
 
 ### Options
 
-- `use_remote_plugin`
-- `use_node` or `use_container`
-- `use_ssh_user`
-- `use_ssh_port`
-- `use_ssh_pem_file`
-- `use_sudo`
+- `command_mode` (`local` (default), `docker`, `ssh`)
+- `command_node` or `command_container`
+- `command_ssh_user`
+- `command_ssh_port`
+- `command_ssh_pem_file`
+- `command_sudo`
 - `exit_on_not_ok`
 
 ## Embed other task files
@@ -182,19 +182,92 @@ Use load keyword to include the tests/utilities from other files.
 For example, `repeat_tests.t`
 
 ```ruby
-test "command 1"
-test "command 2"
+command_test "command 1"
+command_test "command 2"
 ```
 
 and the `main.t` tests file
 
 ```ruby
-use_remote_plugin "docker"
+command_mode "docker"
 
-nodes = ["node1.example.com", "node2.example.com", "node3.example.com"]
-nodes.each do |node|
-    use_node node
+containers = ["node1.example.com", "node2.example.com", "node3.example.com"]
+containers.each do |container|
+    command_node container
 
     load "./repeat_tests.t"
 end
+```
+
+## Testing ReST APIs
+
+```ruby
+http_base_url "http://localhost:3000"
+
+http_get "/api/users"
+
+# Test a specific status code
+http_get "/api/users", status: 200
+
+# Create a user with JSON data
+data = {
+  "name" => "Binnacle",
+  "url" => "https://binnacle.kadalu.tech"
+}
+
+http_post "/api/users", json: data, status: 201
+
+# JSON as Text
+http_post "/api/users", json: <<-DATA, status: 201
+{
+  "name": "Binnacle",
+  "url": "https://binnacle.kadalu.tech"
+}
+DATA
+
+# As Form data
+data = {
+  "name" => "Binnacle",
+  "url" => "https://binnacle.kadalu.tech"
+}
+
+http_post "/api/users", form: data, status: 201
+
+# Upload a file
+data = {
+  "name" => "Binnacle",
+  "url" => "https://binnacle.kadalu.tech",
+  "profile" => "@./binnacle_logo.png"
+}
+
+http_post "/api/users", multipart: data, status: 201
+
+# Edit
+data = {
+  "name" => "Kadalu Binnacle"
+}
+
+http_put "/api/users/1", form: data, status: 200
+
+# Delete
+http_delete "/api/users/1", status: 204
+
+# Get JSON response
+http_response_type "json"
+data = http_get "/api/users"
+compare_equal "Kadalu Binnacle", data[:json]["name"]
+
+# Add and Remove header
+http_add_header "Authorization", "Bearer 1234"
+http_get "/api/users", status: 200 # With Auth Header
+http_remove_header "Authorization"
+http_get "/api/users", status: 401 # Without Auth header
+```
+
+A simple script to check the status of websites
+
+```ruby
+http_get "https://kadalu.tech"
+http_get "https://content.kadalu.tech"
+http_get "https://aravindavk.in"
 ```
