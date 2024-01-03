@@ -149,12 +149,12 @@ module Kadalu
 
       multipart_data = []
       multipart.each do |key, value|
-        if value.start_with?('@')
+        if value.is_a?(String) && value.start_with?('@')
           filepath = value.sub('@', '')
           filedata = File.open(filepath, 'rb')
           multipart_data << [key, filedata, { filename: File.basename(filepath) }]
         else
-          multipart_data << [key, value]
+          multipart_data << [key, value.to_s]
         end
       end
 

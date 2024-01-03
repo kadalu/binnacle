@@ -90,7 +90,7 @@ module Kadalu
       # If node is not local then add respective prefix
       # to ssh or docker exec
       def full_cmd(cmd)
-        return cmd if Store.get(:command_mode) == 'local'
+        return cmd if Store.get(:command_mode) == 'local' || Store.get(:node_name) == 'local'
 
         if Store.get(:command_mode) == 'ssh'
           "ssh #{Store.get(:ssh_user)}@#{Store.get(:node_name)} " \
