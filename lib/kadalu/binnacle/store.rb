@@ -37,14 +37,18 @@ module Kadalu
         nil
       end
 
-      def self.hash_add(hash_name, name, value, &block)
+      def self.hash_set(hash_name, name, value, &block)
         @data[hash_name] = {} unless @data.key?(hash_name)
 
         if block
-          prev_value = get(hash_name)
+          prev_value = @data[hash_name][name]
           @data[hash_name][name] = value
           block.call
-          @data[hash_name] = prev_value
+          if prev_value
+            @data[hash_name][name] = prev_value
+          else
+            @data[hash_name].delete(name)
+          end
         else
           @data[hash_name][name] = value
         end
@@ -56,10 +60,10 @@ module Kadalu
         @data[hash_name] = {} unless @data.key?(hash_name)
 
         if block
-          prev_value = get(hash_name)
-          @data[hash_name].delete(name) if @data[hash_name].key?(name)
+          prev_value = @data[hash_name][name]
+          @data[hash_name].delete(name) if prev_value
           block.call
-          @data[hash_name] = prev_value
+          @data[hash_name][name] = prev_value if prev_value
         elsif @data[hash_name].key?(name)
           @data[hash_name].delete(name)
         end
