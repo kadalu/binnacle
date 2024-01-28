@@ -49,6 +49,10 @@ module Kadalu
           if stdout_line.start_with?('{')
             begin
               data = JSON.parse(stdout_line, { symbolize_names: true })
+
+              # Without ok field this may not be a summary line
+              next unless data.key?(:ok)
+
               metrics[:tasks] << data
               Messages.task_summary(data)
               if data[:ok]

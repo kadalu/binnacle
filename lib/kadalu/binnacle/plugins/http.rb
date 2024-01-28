@@ -82,16 +82,60 @@ module Kadalu
 
     # Add a header to the request
     #
+    # Using as Block
+    #
+    # ```
+    # http_base_url "http://localhost:5001"
+    # http_add_header "Authorization", "Bearer 12345" do
+    #   http_get "/api/folders"
+    # end
+    # ```
+    #
+    # or without block
+    #
     # ```
     # http_base_url "http://localhost:5001"
     # http_add_header "Authorization", "Bearer 12345"
     # http_get "/api/folders"
     # ```
     register_plugin 'http_add_header' do |name, value, &block|
-      Store.hash_add(:request_headers, name, value, &block)
+      Store.hash_set(:request_headers, name, value, &block)
+    end
+
+    # Set the header to the request
+    #
+    # Using as Block
+    #
+    # ```
+    # http_base_url "http://localhost:5001"
+    # http_set_header "Authorization", "Bearer 12345" do
+    #   http_get "/api/folders"
+    # end
+    # ```
+    #
+    # or without block
+    #
+    # ```
+    # http_base_url "http://localhost:5001"
+    # http_set_header "Authorization", "Bearer 12345"
+    # http_get "/api/folders"
+    # ```
+    register_plugin 'http_set_header' do |name, value, &block|
+      Store.hash_set(:request_headers, name, value, &block)
     end
 
     # Remove header from the request
+    #
+    # Using as a Block
+    #
+    # ```
+    # http_base_url "http://localhost:5001"
+    # http_remove_header "Authorization" do
+    #   http_get "/api/folders", status: 403
+    # end
+    # ```
+    #
+    # or without block
     #
     # ```
     # http_base_url "http://localhost:5001"
