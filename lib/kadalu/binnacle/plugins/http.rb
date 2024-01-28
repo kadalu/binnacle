@@ -129,7 +129,7 @@ module Kadalu
       case response_type
       when 'json'
         begin
-          outdata[:json] = JSON.parse(response.body)
+          outdata[:json] = JSON.parse(response.body) if response.body.is_a?(String)
         rescue JSON::ParserError
           outdata[:json] = nil
         end
